@@ -1,28 +1,36 @@
 {
-  "name": "bastion",
-  "version": "0.0.1",
-  "description": "Cross-platform OpenPGP client with support for Keybase.io",
-  "main": "index.html",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/petschekr/Bastion.git"
-  },
-  "keywords": [
-    "bastion",
-    "pgp",
-    "openpgp",
-    "open-pgp",
-    "gpg",
-    "client",
-    "keybase"
-  ],
-  "author": "Ryan Petschek <petschekr@gmail.com>",
-  "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/petschekr/Bastion/issues"
-  },
-  "homepage": "https://github.com/petschekr/Bastion"
+    "name": "bastion",
+    "version": "0.0.1",
+    "description": "Cross-platform OpenPGP client with support for Keybase.io",
+    "main": "index.html",
+    "window": {
+        "toolbar": true,
+        "width": 1000,
+        "height": 660,
+        "min_width": 800,
+        "min_height": 400,
+        "position": "center"
+    },
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1"
+    },
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/petschekr/Bastion.git"
+    },
+    "keywords": [
+        "bastion",
+        "pgp",
+        "openpgp",
+        "open-pgp",
+        "gpg",
+        "client",
+        "keybase"
+    ],
+    "author": "Ryan Petschek <petschekr@gmail.com>",
+    "license": "MIT",
+    "bugs": {
+        "url": "https://github.com/petschekr/Bastion/issues"
+    },
+    "homepage": "https://github.com/petschekr/Bastion"
 }

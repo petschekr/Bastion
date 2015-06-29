@@ -41,6 +41,7 @@
     "paper-spinner": "PolymerElements/paper-spinner#^1.0.0",
     "paper-toast": "PolymerElements/paper-toast#^1.0.0",
     "paper-toggle-button": "PolymerElements/paper-toggle-button#^1.0.0",
-    "paper-toolbar": "PolymerElements/paper-toolbar#^1.0.0"
+    "paper-toolbar": "PolymerElements/paper-toolbar#^1.0.0",
+    "paper-header-panel": "PolymerElements/paper-header-panel#^1.0.0"
   }
 }
