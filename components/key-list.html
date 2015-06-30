@@ -1,0 +1,58 @@
+<link rel="import" href="../bower_components/polymer/polymer.html" />
+<link rel="import" href="../bower_components/paper-item/paper-item.html" />
+<link rel="import" href="../bower_components/paper-item/paper-item-body.html" />
+<link rel="import" href="../bower_components/paper-ripple/paper-ripple.html" />
+
+<dom-module id="key-list">
+	<style>
+		paper-item-body {
+			position: relative;
+			padding-left: 16px;
+			margin-left: -16px;
+		}
+		h1 {
+			font-family: "Roboto";
+			margin: 8px 16px 2px;
+			font-size: 22px;
+			border-bottom: 1px solid rgb(203, 203, 203);
+			height: 32px;
+		}
+	</style>
+	<template>
+		<h1>Your keys</h1>
+		<template is="dom-repeat" items="{{keys}}">
+			<paper-item>
+				<paper-item-body two-line>
+					<div>{{item.title}}</div>
+					<div secondary>{{item.email}}</div>
+					<paper-ripple></paper-ripple>
+				</paper-item-body>
+				<paper-icon-button icon="launch"></paper-icon-button>
+			</paper-item>
+		</template>
+		<h1>Contacts</h1>
+		<template is="dom-repeat" items="{{keys}}">
+			<paper-item>
+				<paper-item-body two-line>
+					<div>{{item.title}}</div>
+					<div secondary>{{item.email}}</div>
+					<paper-ripple></paper-ripple>
+				</paper-item-body>
+				<paper-icon-button icon="launch"></paper-icon-button>
+			</paper-item>
+		</template>
+	</template>
+	<script>
+		var kbpgp = require("kbpgp");
+		Polymer({
+			is: "key-list",
+			ready: function() {
+				// Load available keys
+				this.keys = [
+					{title: "Ryan Petschek", email: "petschekr@gmail.com"},
+					{title: "Julien Gilli", email: "jgilli@fastmail.fm"}
+				];
+			}
+		});
+	</script>
+</dom-module>
