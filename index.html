@@ -4,26 +4,9 @@
 		<meta charset="utf-8" />
 
 		<script src="bower_components/webcomponentsjs/webcomponents-lite.min.js"></script>
-		<link rel="import" href="bower_components/paper-toolbar/paper-toolbar.html" />
-		<link rel="import" href="bower_components/paper-icon-button/paper-icon-button.html" />
-		<link rel="import" href="bower_components/iron-icons/iron-icons.html" />
-		<link rel="import" href="components/key-list.html" />
-		<style>
-			paper-toolbar {
-				background-color: #0074D9 !important;
-				/* Compensates for default 8px margin around <body> */
-				margin-top: -8px;
-				margin-left: -8px;
-				margin-right: -8px;
-			}
-		</style>
+		<link rel="import" href="components/bastion-main.html" />
 	</head>
 	<body unresolved>
-		<paper-toolbar>
-			<paper-icon-button icon="menu"></paper-icon-button>
-			<span class="title">Bastion</span>
-			<paper-icon-button icon="add"></paper-icon-button>
-		</paper-toolbar>
-		<key-list></key-list>
+		<bastion-main></bastion-main>
 	</body>
 </html>

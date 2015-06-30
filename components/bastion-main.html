@@ -1,0 +1,48 @@
+<link rel="import" href="../bower_components/polymer/polymer.html" />
+<link rel="import" href="../bower_components/paper-item/paper-item.html" />
+<link rel="import" href="../bower_components/paper-toolbar/paper-toolbar.html" />
+<link rel="import" href="../bower_components/paper-icon-button/paper-icon-button.html" />
+<link rel="import" href="../bower_components/iron-icons/iron-icons.html" />
+<link rel="import" href="key-list.html" />
+
+<dom-module id="bastion-main">
+	<style>
+		paper-toolbar {
+			background-color: #0074D9 !important;
+			/* Compensates for default 8px margin around <body> */
+			margin-top: -8px;
+			margin-left: -8px;
+			margin-right: -8px;
+		}
+	</style>
+	<template>
+		<paper-toolbar>
+			<paper-icon-button icon="menu"></paper-icon-button>
+			<span class="title">Bastion</span>
+			<paper-icon-button icon="cloud-download"></paper-icon-button>
+			<paper-icon-button icon="add"></paper-icon-button>
+		</paper-toolbar>
+		<key-list></key-list>
+	</template>
+	<script>
+		var kbpgp = require("kbpgp");
+		//var gui = require("nw.gui");
+		//var nedb = require("nedb");
+		var path = require("path");
+		Polymer({
+			is: "bastion-main",
+			ready: function() {
+				// Start database
+				// this.db = new nedb({
+				// 	filename: path.join(gui.App.dataPath, "keys.db"),
+				// 	autoload: true
+				// });
+				// Load available keys
+				this.keys = [
+					{title: "Ryan Petschek", email: "petschekr@gmail.com"},
+					{title: "Julien Gilli", email: "jgilli@fastmail.fm"}
+				];
+			}
+		});
+	</script>
+</dom-module>
