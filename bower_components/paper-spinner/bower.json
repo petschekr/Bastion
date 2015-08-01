@@ -1,6 +1,6 @@
 {
   "name": "paper-spinner",
-  "version": "1.0.1",
+  "version": "1.0.0",
   "description": "A material design spinner",
   "authors": [
     "The Polymer Authors"
@@ -11,6 +11,7 @@
     "spinner",
     "loading"
   ],
+  "main": "index.html",
   "private": true,
   "repository": {
     "type": "git",

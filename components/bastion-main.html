@@ -5,9 +5,15 @@
 <link rel="import" href="../bower_components/paper-dialog/paper-dialog.html" />
 <link rel="import" href="../bower_components/paper-button/paper-button.html" />
 <link rel="import" href="../bower_components/paper-input/paper-textarea.html" />
+<link rel="import" href="../bower_components/paper-input/paper-input.html" />
+<link rel="import" href="../bower_components/gold-email-input/gold-email-input.html" />
+<link rel="import" href="../bower_components/paper-radio-group/paper-radio-group.html" />
+<link rel="import" href="../bower_components/paper-radio-button/paper-radio-button.html" />
 <link rel="import" href="../bower_components/iron-icons/iron-icons.html" />
 <link rel="import" href="../bower_components/neon-animation/neon-animations.html" />
 <link rel="import" href="key-list.html" />
+<link rel="stylesheet" href="../bower_components/sweetalert/dist/sweetalert.css" />
+<script src="../bower_components/sweetalert/dist/sweetalert.min.js"></script>
 
 <dom-module id="bastion-main">
 	<style>
@@ -23,6 +29,29 @@
 			max-height: 200px !important;
 			height: 200px;
 		}
+		#generate-key {
+			max-height: 452px !important;
+			height: 452px;
+			/*max-width: 565px;*/
+		}
+		#generate-key > * {
+			margin: 0;
+		}
+		#generate-key > *:first-child {
+			margin-top: 10px;
+		}
+		#generate-key > paper-input, #generate-key gold-email-input {
+			margin-top: -18px;
+			margin-bottom: 10px;
+		}
+		#generate-key > p {
+			font-weight: bold;
+		}
+		#generate-key > #generate-status {
+			font-weight: normal;
+			text-align: center;
+			font-size: 1.2em;
+		}
 		paper-dialog #key-area {
 			margin-top: -10px;
 			height: 96px;
@@ -34,7 +63,8 @@
 			<paper-icon-button icon="menu"></paper-icon-button>
 			<span class="title">Bastion</span>
 			<paper-icon-button icon="cloud-download"></paper-icon-button>
-			<paper-icon-button icon="add" on-tap="showAddKey"></paper-icon-button>
+			<paper-icon-button icon="input" on-tap="showAddKey"></paper-icon-button>
+			<paper-icon-button icon="add" on-tap="showGenerateKey"></paper-icon-button>
 		</paper-toolbar>
 		<key-list id="key-list"></key-list>
 		<paper-dialog id="add-key" modal>
@@ -45,6 +75,35 @@
 			<div class="buttons">
 				<paper-button dialog-dismiss>Cancel</paper-button>
         		<paper-button dialog-confirm autofocus on-tap="addKey">OK</paper-button>
+			</div>
+		</paper-dialog>
+		<paper-dialog id="generate-key" modal>
+			<paper-input id="generate-info-name" label="You name"></paper-input>
+			<gold-email-input id="generate-info-email" label="Your email" auto-validate></gold-email-input>
+			<paper-input id="generate-info-password" label="A password to unlock this key" type="password"></paper-input>
+			<p>Choose an algorithm</p>
+			<paper-radio-group selected="rsa" id="generate-info-algorithm">
+				<paper-radio-button name="rsa">RSA</paper-radio-button>
+				<paper-radio-button name="ecc">ECC (elliptic curve cryptography)</paper-radio-button>
+			</paper-radio-group>
+			<p>Choose an expiration time</p>
+			<paper-radio-group selected="8" id="generate-info-expiration">
+				<paper-radio-button name="1">1 year</paper-radio-button>
+				<paper-radio-button name="2">2 years</paper-radio-button>
+				<paper-radio-button name="4">4 years</paper-radio-button>
+				<paper-radio-button name="8">8 years</paper-radio-button>
+				<paper-radio-button name="never">Never</paper-radio-button>
+			</paper-radio-group>
+			<p>Choose a key strength</p>
+			<paper-radio-group selected="2048" id="generate-info-keysize">
+				<paper-radio-button name="1024">1024 bit (not secure; only use for testing)</paper-radio-button>
+				<paper-radio-button name="2048">2048 bit</paper-radio-button>
+				<paper-radio-button name="4096">4096 bit</paper-radio-button>
+			</paper-radio-group>
+			<p id="generate-status">Press the generate button to generate a new PGP key pair</p>
+			<div class="buttons">
+				<paper-button dialog-dismiss>Cancel</paper-button>
+        		<paper-button autofocus on-tap="generateKey" id="generate-button">Generate</paper-button>
 			</div>
 		</paper-dialog>
 	</template>
@@ -64,6 +123,9 @@
 				});
 				window.db = this.db;
 				// Load available keys
+				this.loadKeys(true);
+			},
+			loadKeys: function(firstLaunch) {
 				async.parallel([
 					(function (callback) {
 						this.db.find({"owned": true}, callback);
@@ -74,7 +136,7 @@
 				], (function (err, results) {
 					if (err) {
 						console.error(err);
-						alert("An error occurred while reading keys from the database");
+						swal("Oops!", "An error occurred while reading keys from the database", "error");
 						return;
 					}
 					this.keys = {};
@@ -85,23 +147,26 @@
 					// Tell the key-list element that we've initialized the DB and loaded available keys
 					this.$["key-list"].mainInitialized();
 				}).bind(this));
-				// this.keys = [
-				// 	{title: "Ryan Petschek", email: "petschekr@gmail.com"},
-				// 	{title: "Julien Gilli", email: "jgilli@fastmail.fm"}
-				// ];
 			},
 			showAddKey: function() {
 				this.$["add-key"].open();
 			},
+			showGenerateKey: function() {
+				this.$["generate-key"].open();
+			},
 			addKey: function() {
 				var key = this.$["added-key"].value;
 				this.$["added-key"].value = "";
+				this.importKey(key);
+			},
+			importKey: function(key) {
+				var that = this;
 				kbpgp.KeyManager.import_from_armored_pgp({
 					armored: key
 				}, function(err, importedKey) {
 					if (err) {
 						setTimeout(function () {
-							alert("Unable to add public or private key");							
+							swal("Oops!", "Unable to add public or private key", "error");
 						}, 250);
 						return;
 					}
@@ -119,6 +184,8 @@
 									"private": key,
 									"public": publicKey
 								}
+							}, function() {
+								that.loadKeys();
 							});
 						});
 					}
@@ -131,9 +198,143 @@
 								"private": null,
 								"public": key
 							}
+						}, function() {
+							that.loadKeys();
 						});
 					}
 				});
+			},
+			generateKey: function() {
+				// Check user input
+				if (!this.$["generate-info-name"].value) {
+					swal("Missing info!", "Please enter your name", "error");
+					return;
+				}
+				if (!this.$["generate-info-email"].value) {
+					swal("Missing info!", "Please enter your email", "error");
+					return;
+				}
+				if (!this.$["generate-info-email"].validate()) {
+					swal("Invalid email!", "Please enter a valid email", "error");
+					return;
+				}
+				if (!this.$["generate-info-password"].value) {
+					swal({
+						title: "Proceed without a password?",
+						text: "You haven't entered a password to protect this key pair. Anyone with access to your key file can trivially decrypt messages intended for you and impersonate you by signing any message they wish. Are you sure you still want to proceed without a password?",
+						type: "warning",
+						showCancelButton: true,
+						confirmButtonColor: "#DD6B55",
+						confirmButtonText: "Yes, delete it!",
+						closeOnConfirm: false
+					}, proceed.bind(this));
+				}
+				proceed.bind(this)();
+				var that = this;
+				function proceed() {
+				// Use params from user input
+				var name = this.$["generate-info-name"].value;
+				var email = " <" + this.$["generate-info-email"].value + ">";
+				//var comments = ($('#comments').val() != "" ) ? " (" + $('#comments').val() + ")" : "";
+				var bitlength = parseInt(this.$["generate-info-keysize"].selected, 10);
+				var algorithm = this.$["generate-info-algorithm"].selected;
+				var expire = parseInt(this.$["generate-info-expiration"].selected, 10);
+				if (isNaN(expire)) {
+					// "Never" selected
+					expire = 0;
+				}
+				var password = this.$["generate-info-password"].value;
+				
+				// Set ECC flag
+				var use_ecc = (algorithm === "ecc");
+
+				
+				// Disable/update the action button
+				this.$["generate-button"].setAttribute("disabled", "disabled");
+				var previousStatus = this.$["generate-status"].textContent;
+				
+				// Create a progress hook
+				var progressASP = new kbpgp.ASP({
+					progress_hook: function(o) {
+						var message = "";
+						switch (o.what) {
+							case "fermat":
+							    message = "Hunting for a prime... " + o.p.toString().slice(-3);
+							    break;
+							case "mr":
+							    message = "Confirming prime candidate " + ~~(100 * o.i / o.total) + "%";
+							    break;
+							case "found":
+							    message = "Found a prime!";
+							    break;
+							default:
+							    message = "" + o.what
+						}
+						that.$["generate-status"].textContent = message;
+					}
+				});
+				
+				var F = kbpgp["const"].openpgp;
+				
+				var opts = {
+					asp: progressASP,
+					userid: name /*+ comments*/ + email,
+					ecc: use_ecc,
+					primary: {
+						nbits: bitlength,
+						flags: F.certify_keys | F.sign_data | F.auth | F.encrypt_comm | F.encrypt_storage,
+						expire_in: 0 // never expires
+					},
+					subkeys: [
+						{
+							nbits: bitlength,
+							flags: F.sign_data,
+							expire_in: 86400 * 365 * expire
+						},
+						{
+							nbits: bitlength,
+							flags: F.encrypt_comm | F.encrypt_storage,
+							expire_in: 86400 * 365 * expire
+						}
+					]
+				};
+				var that = this;
+				kbpgp.KeyManager.generate(opts, function(err, generatedKey) {
+					if (err) {
+						error(err);
+						swal("Oops!", "An error occurred while generating your key", "error");
+						return;
+					}
+					generatedKey.sign({}, function(err) {
+						async.parallel([
+							function(callback) {
+								generatedKey.export_pgp_private({
+							    	passphrase: password
+							  	}, callback);
+							},
+							function(callback) {
+								generatedKey.export_pgp_public({}, callback);
+							}
+						], (function(err, results) {
+							if (err) {
+								console.error(err);
+								swal("Oops!", "An error occurred while exporting your key", "error");
+								return;
+							}
+							var privateKey = results[0];
+							var publicKey = results[1];
+							this.importKey(privateKey);
+							// Reset generation dialog
+							this.$["generate-button"].removeAttribute("disabled");
+							this.$["generate-status"].textContent = previousStatus;
+							this.$["generate-info-name"].value = "";
+							this.$["generate-info-email"].value = "";
+							this.$["generate-info-password"].value = "";
+							this.$["generate-key"].close();
+						}).bind(that));
+					});
+				});
+				}
 			}
 		});
 	</script>
