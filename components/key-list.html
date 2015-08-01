@@ -20,22 +20,22 @@
 	</style>
 	<template>
 		<h1>Your keys</h1>
-		<template is="dom-repeat" items="{{keys}}">
+		<template is="dom-repeat" items="{{keys.owned}}">
 			<paper-item>
 				<paper-item-body two-line>
-					<div>{{item.title}}</div>
-					<div secondary>{{item.email}}</div>
+					<div>{{item.info.0.username}}</div>
+					<div secondary>{{item.info.0.email}}</div>
 					<paper-ripple></paper-ripple>
 				</paper-item-body>
 				<paper-icon-button icon="create"></paper-icon-button>
 			</paper-item>
 		</template>
 		<h1>Contacts</h1>
-		<template is="dom-repeat" items="{{keys}}">
+		<template is="dom-repeat" items="{{keys.contacts}}">
 			<paper-item>
 				<paper-item-body two-line>
-					<div>{{item.title}}</div>
-					<div secondary>{{item.email}}</div>
+					<div>{{item.info.0.username}}</div>
+					<div secondary>{{item.info.0.email}}</div>
 					<paper-ripple></paper-ripple>
 				</paper-item-body>
 				<paper-icon-button icon="create"></paper-icon-button>
@@ -47,11 +47,12 @@
 		Polymer({
 			is: "key-list",
 			ready: function() {
+				
+			},
+			mainInitialized: function() {
 				// Load available keys
-				this.keys = [
-					{title: "Ryan Petschek", email: "petschekr@gmail.com"},
-					{title: "Julien Gilli", email: "jgilli@fastmail.fm"}
-				];
+				this.keys = window.keys;
+				console.log(this.keys);
 			}
 		});
 	</script>
