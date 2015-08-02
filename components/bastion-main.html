@@ -83,8 +83,8 @@
 			<paper-input id="generate-info-password" label="A password to unlock this key" type="password"></paper-input>
 			<p>Choose an algorithm</p>
 			<paper-radio-group selected="rsa" id="generate-info-algorithm">
-				<paper-radio-button name="rsa">RSA</paper-radio-button>
-				<paper-radio-button name="ecc">ECC (elliptic curve cryptography)</paper-radio-button>
+				<paper-radio-button name="rsa" on-tap="algorithmChangeRSA">RSA</paper-radio-button>
+				<paper-radio-button name="ecc" on-tap="algorithmChangeECC">ECC (elliptic curve cryptography)</paper-radio-button>
 			</paper-radio-group>
 			<p>Choose an expiration time</p>
 			<paper-radio-group selected="8" id="generate-info-expiration">
@@ -96,9 +96,9 @@
 			</paper-radio-group>
 			<p>Choose a key strength</p>
 			<paper-radio-group selected="2048" id="generate-info-keysize">
-				<paper-radio-button name="1024">1024 bit (not secure; only use for testing)</paper-radio-button>
-				<paper-radio-button name="2048">2048 bit</paper-radio-button>
-				<paper-radio-button name="4096">4096 bit</paper-radio-button>
+				<paper-radio-button name="1024" data-alt="256"><span>1024</span> bit (<span>not very secure</span>)</paper-radio-button>
+				<paper-radio-button name="2048" data-alt="384"><span>2048</span> bit (<span>good security</span>)</paper-radio-button>
+				<paper-radio-button name="4096" data-alt="521"><span>4096</span> bit (<span>overkill security</span>)</paper-radio-button>
 			</paper-radio-group>
 			<p id="generate-status">Press the generate button to generate a new PGP key pair</p>
 			<div class="buttons">
@@ -204,6 +204,46 @@
 					}
 				});
 			},
+			algorithmChangeRSA: function() {
+				var options = this.$["generate-info-keysize"].getElementsByTagName("paper-radio-button");
+				for (var i = 0; i < options.length; i++) {
+					var button = options[i];
+					button.getElementsByTagName("span")[0].textContent = button.getAttribute("name");
+					var label;
+					switch (i) {
+						case 0:
+							label = "not very secure";
+							break;
+						case 1:
+							label = "good security";
+							break;
+						case 2:
+							label = "overkill security";
+							break;
+					}
+					button.getElementsByTagName("span")[1].textContent = label;
+				}
+			},
+			algorithmChangeECC: function() {
+				var options = this.$["generate-info-keysize"].getElementsByTagName("paper-radio-button");
+				for (var i = 0; i < options.length; i++) {
+					var button = options[i];
+					button.getElementsByTagName("span")[0].textContent = button.getAttribute("data-alt");
+					var label;
+					switch (i) {
+						case 0:
+							label = "good security";
+							break;
+						case 1:
+							label = "better security";
+							break;
+						case 2:
+							label = "overkill security";
+							break;
+					}
+					button.getElementsByTagName("span")[1].textContent = label;
+				}
+			},
 			generateKey: function() {
 				// Check user input
 				if (!this.$["generate-info-name"].value) {
@@ -247,6 +287,19 @@
 				
 				// Set ECC flag
 				var use_ecc = (algorithm === "ecc");
+				if (use_ecc) {
+					switch (bitlength) {
+						case 1024:
+							bitlength = 256;
+							break;
+						case 2048:
+							bitlength = 384;
+							break;
+						case 4096:
+							bitlength = 521;
+							break;
+					}
+				}
 
 				
 				// Disable/update the action button
