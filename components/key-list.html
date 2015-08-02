@@ -52,6 +52,17 @@
 			mainInitialized: function() {
 				// Load available keys
 				this.keys = window.keys;
+				function nameSort (a, b) {
+					// Sort by name first
+					if (a.info[0].username < b.info[0].username) return -1;
+					if (a.info[0].username > b.info[0].username) return 1;
+					// If equivalent, sort by email
+					if (a.info[0].email < b.info[0].email) return -1;
+					if (a.info[0].email > b.info[0].email) return 1;
+					return 0;
+				}
+				this.keys.owned = this.keys.owned.sort(nameSort);
+				this.keys.contacts = this.keys.contacts.sort(nameSort);
 			}
 		});
 	</script>
