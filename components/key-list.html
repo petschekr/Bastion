@@ -30,6 +30,13 @@
 				<paper-icon-button icon="create"></paper-icon-button>
 			</paper-item>
 		</template>
+		<template is="dom-if" if="{{!keys.owned.length}}">
+			<paper-item>
+				<paper-item-body>
+					<div><i>To generate or import a key, click the buttons at the upper right</i></div>
+				</paper-item-body>
+			</paper-item>
+		</template>
 		<h1>Contacts</h1>
 		<template is="dom-repeat" items="{{keys.contacts}}">
 			<paper-item>
@@ -39,6 +46,13 @@
 					<paper-ripple></paper-ripple>
 				</paper-item-body>
 				<paper-icon-button icon="send"></paper-icon-button>
+			</paper-item>
+		</template>
+		<template is="dom-if" if="{{!keys.contacts.length}}">
+			<paper-item>
+				<paper-item-body>
+					<div><i>You have no contacts yet</i></div>
+				</paper-item-body>
 			</paper-item>
 		</template>
 	</template>
