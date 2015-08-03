@@ -24,10 +24,10 @@
 			margin-left: -8px;
 			margin-right: -8px;
 		}
-		paper-dialog {
+		#add-key {
 			width: 90%;
-			max-height: 200px !important;
-			height: 200px;
+			max-height: 220px !important;
+			height: 220px;
 		}
 		#generate-key {
 			max-height: 452px !important;
@@ -68,7 +68,11 @@
 		</paper-toolbar>
 		<key-list id="key-list"></key-list>
 		<paper-dialog id="add-key" modal>
-			<p>Enter a public or private key in the text area below to import it</p>
+			<p>
+				Enter a public or private key in the text area below to import it.
+				<br />
+				Public keys will be added to your contacts and private keys will be added to your keys.
+			</p>
 			<div id="key-area">
 				<paper-textarea label="Public or private key" id="added-key"></paper-textarea>
 			</div>
