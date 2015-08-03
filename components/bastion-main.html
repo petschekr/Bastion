@@ -219,12 +219,16 @@
 									inputPlaceholder: "Passphrase",
 									inputType: "password"
 								}, function(inputPassword) {
-									if (!inputPassword) {
-										return;
+									if (inputPassword === false)
+										return false;
+									if (inputPassword === "") {
+										swal.showInputError("Please enter your passphrase");
+										return false;
 									}
 									importedKey.unlock_pgp({
 										passphrase: inputPassword
 									}, function(err) {
+										swal.close();
 										if (err) {
 											console.error(err);
 											setTimeout(function() {
