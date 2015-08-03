@@ -159,7 +159,7 @@
 				this.$["added-key"].value = "";
 				this.importKey(key);
 			},
-			importKey: function(key) {
+			importKey: function(key, password) {
 				var that = this;
 				kbpgp.KeyManager.import_from_armored_pgp({
 					armored: key
@@ -176,18 +176,71 @@
 					});
 					if (importedKey.has_pgp_private()) {
 						// Personal key
-						importedKey.export_pgp_public({}, function(err, publicKey) {
-							db.insert({
-								"owned": true,
-								"info": information,
-								"keys": {
-									"private": key,
-									"public": publicKey
-								}
-							}, function() {
-								that.loadKeys();
+						function privateExport() {
+							// Fix for bug in kbpgp where the public key is not regenerated
+							importedKey.armored_pgp_public = undefined;
+							importedKey.export_pgp_public({}, function(err, publicKey) {
+								db.insert({
+									"owned": true,
+									"info": information,
+									"keys": {
+										"private": key,
+										"public": publicKey
+									}
+								}, function() {
+									that.loadKeys();
+								});
 							});
-						});
+						}
+						if (importedKey.is_pgp_locked()) {
+							// Need a password before public key can be exported
+							if (password) {
+								// From key generation dialog where password is known
+								importedKey.unlock_pgp({
+									passphrase: password
+								}, function(err) {
+									if (err) {
+										console.error(err);
+										swal("Oops!", "An error occurred while unlocking your key", "error");
+										return;
+									}
+									password = null;
+									privateExport();
+								});
+							}
+							else {
+								// Prompt for password
+								swal({
+									title: "Unlock your key",
+									text: "The private key that you imported is locked. Please enter your passphrase to add it.",
+									type: "input",
+									showCancelButton: true,
+									closeOnConfirm: false,
+									inputPlaceholder: "Passphrase",
+									inputType: "password"
+								}, function(inputPassword) {
+									if (!inputPassword) {
+										return;
+									}
+									importedKey.unlock_pgp({
+										passphrase: inputPassword
+									}, function(err) {
+										if (err) {
+											console.error(err);
+											setTimeout(function() {
+												swal("Oops!", "An error occurred while unlocking your key. Your passphrase might be incorrect.", "error");
+											}, 100);
+											return;
+										}
+										password = null;
+										privateExport();
+									});
+								});
+							}
+						}
+						else {
+							privateExport();
+						}
 					}
 					else {
 						// Contact's key
@@ -376,7 +429,7 @@
 							}
 							var privateKey = results[0];
 							var publicKey = results[1];
-							this.importKey(privateKey);
+							this.importKey(privateKey, password);
 							// Reset generation dialog
 							this.$["generate-button"].removeAttribute("disabled");
 							this.$["generate-status"].textContent = previousStatus;
