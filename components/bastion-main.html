@@ -57,6 +57,15 @@
 			height: 96px;
   			overflow: auto;
 		}
+		#added-key {
+			display: inline-block;
+			width: calc(100% - 45px);
+		}
+		#add-key-upload {
+			float: right;
+			margin-top: 20px;
+			color: #757575;
+		}
 	</style>
 	<template>
 		<paper-toolbar>
@@ -75,6 +84,8 @@
 			</p>
 			<div id="key-area">
 				<paper-textarea label="Public or private key" id="added-key"></paper-textarea>
+				<paper-icon-button icon="file-upload" on-tap="showUploadKey"></paper-icon-button>
+				<input type="file" style="display:none;" id="add-key-uploader" accept=".asc,.txt" />
 			</div>
 			<div class="buttons">
 				<paper-button dialog-dismiss>Cancel</paper-button>
@@ -117,6 +128,7 @@
 		var nedb = require("nedb");
 		var path = require("path");
 		var async = require("async");
+		var fs = require("fs");
 		Polymer({
 			is: "bastion-main",
 			ready: function() {
@@ -158,6 +170,22 @@
 			showGenerateKey: function() {
 				this.$["generate-key"].open();
 			},
+			showUploadKey: function() {
+				var chooser = this.$["add-key-uploader"];
+				chooser.addEventListener("change", (function(e) {
+					fs.readFile(e.target.value, "utf8", (function (err, keyData) {
+						if (err) {
+							console.error(err);
+							swal("Oops!", "An error occurred while reading the selected file", "error");
+							return;
+						}
+						e.target.value = "";
+						this.importKey(keyData);
+						this.$["add-key"].close();
+					}).bind(this));
+				}).bind(this), false);
+				chooser.click();
+			},
 			addKey: function() {
 				var key = this.$["added-key"].value;
 				this.$["added-key"].value = "";
@@ -169,6 +197,7 @@
 					armored: key
 				}, function(err, importedKey) {
 					if (err) {
+						console.error(err);
 						setTimeout(function () {
 							swal("Oops!", "Unable to add public or private key", "error");
 						}, 250);
