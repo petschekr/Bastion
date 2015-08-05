@@ -6,6 +6,7 @@
 <link rel="import" href="../bower_components/paper-button/paper-button.html" />
 <link rel="import" href="../bower_components/paper-input/paper-textarea.html" />
 <link rel="import" href="../bower_components/paper-input/paper-input.html" />
+<link rel="import" href="../bower_components/paper-toast/paper-toast.html" />
 <link rel="import" href="../bower_components/gold-email-input/gold-email-input.html" />
 <link rel="import" href="../bower_components/paper-radio-group/paper-radio-group.html" />
 <link rel="import" href="../bower_components/paper-radio-button/paper-radio-button.html" />
@@ -117,10 +118,11 @@
 			</paper-radio-group>
 			<p id="generate-status">Press the generate button to generate a new PGP key pair</p>
 			<div class="buttons">
-				<paper-button dialog-dismiss>Cancel</paper-button>
+				<paper-button dialog-dismiss on-tap="cancelGenerateKey">Cancel</paper-button>
         		<paper-button autofocus on-tap="generateKey" id="generate-button">Generate</paper-button>
 			</div>
 		</paper-dialog>
+		<paper-toast id="message-toast" text="Something went wrong"></paper-toast>
 	</template>
 	<script>
 		var kbpgp = require("kbpgp");
@@ -416,6 +418,7 @@
 						that.$["generate-status"].textContent = message;
 					}
 				});
+				this.generateASP = progressASP;
 				
 				var F = kbpgp["const"].openpgp;
 				
@@ -443,8 +446,9 @@
 				};
 				var that = this;
 				kbpgp.KeyManager.generate(opts, function(err, generatedKey) {
-					if (err) {
-						error(err);
+					that.generateASP = null;
+					if (err && err.message !== "Aborted") {
+						console.error(err);
 						swal("Oops!", "An error occurred while generating your key", "error");
 						return;
 					}
@@ -477,6 +481,14 @@
 						}).bind(that));
 					});
 				});
+				}
+			},
+			generateASP: null,
+			cancelGenerateKey: function() {
+				if (this.generateASP) {
+					this.generateASP.canceler().cancel();
+					this.$["message-toast"].text = "Key generation canceled.";
+					this.$["message-toast"].show();
 				}
 			}
 		});
