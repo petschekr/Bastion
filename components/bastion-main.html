@@ -396,7 +396,7 @@
 				
 				// Disable/update the action button
 				this.$["generate-button"].setAttribute("disabled", "disabled");
-				var previousStatus = this.$["generate-status"].textContent;
+				this.previousGenerateStatus = this.$["generate-status"].textContent;
 				
 				// Create a progress hook
 				var progressASP = new kbpgp.ASP({
@@ -473,7 +473,7 @@
 							this.importKey(privateKey, password);
 							// Reset generation dialog
 							this.$["generate-button"].removeAttribute("disabled");
-							this.$["generate-status"].textContent = previousStatus;
+							this.$["generate-status"].textContent = this.previousGenerateStatus;
 							this.$["generate-info-name"].value = "";
 							this.$["generate-info-email"].value = "";
 							this.$["generate-info-password"].value = "";
@@ -490,6 +490,11 @@
 			cancelGenerateKey: function() {
 				if (this.generateASP) {
 					this.generateASP.canceler().cancel();
+					this.$["generate-button"].removeAttribute("disabled");
+					this.$["generate-status"].textContent = this.previousGenerateStatus;
+					this.$["generate-info-name"].value = "";
+					this.$["generate-info-email"].value = "";
+					this.$["generate-info-password"].value = "";
 					this.$["message-toast"].text = "Key generation canceled.";
 					this.$["message-toast"].show();
 				}
