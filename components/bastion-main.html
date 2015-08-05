@@ -154,7 +154,7 @@
 				], (function (err, results) {
 					if (err) {
 						console.error(err);
-						swal("Oops!", "An error occurred while reading keys from the database", "error");
+						swal("Oops!", "An error occurred while reading keys from the database.", "error");
 						return;
 					}
 					this.keys = {};
@@ -178,7 +178,7 @@
 					fs.readFile(e.target.value, "utf8", (function (err, keyData) {
 						if (err) {
 							console.error(err);
-							swal("Oops!", "An error occurred while reading the selected file", "error");
+							swal("Oops!", "An error occurred while reading the selected file.", "error");
 							return;
 						}
 						e.target.value = "";
@@ -201,7 +201,7 @@
 					if (err) {
 						console.error(err);
 						setTimeout(function () {
-							swal("Oops!", "Unable to add public or private key", "error");
+							swal("Oops!", "Unable to add public or private key.", "error");
 						}, 250);
 						return;
 					}
@@ -236,7 +236,7 @@
 								}, function(err) {
 									if (err) {
 										console.error(err);
-										swal("Oops!", "An error occurred while unlocking your key", "error");
+										swal("Oops!", "An error occurred while unlocking your key.", "error");
 										return;
 									}
 									password = null;
@@ -257,7 +257,7 @@
 									if (inputPassword === false)
 										return false;
 									if (inputPassword === "") {
-										swal.showInputError("Please enter your passphrase");
+										swal.showInputError("Please enter your passphrase.");
 										return false;
 									}
 									importedKey.unlock_pgp({
@@ -339,15 +339,15 @@
 			generateKey: function() {
 				// Check user input
 				if (!this.$["generate-info-name"].value) {
-					swal("Missing info!", "Please enter your name", "error");
+					swal("Missing info!", "Please enter your name.", "error");
 					return;
 				}
 				if (!this.$["generate-info-email"].value) {
-					swal("Missing info!", "Please enter your email", "error");
+					swal("Missing info!", "Please enter your email.", "error");
 					return;
 				}
 				if (!this.$["generate-info-email"].validate()) {
-					swal("Invalid email!", "Please enter a valid email", "error");
+					swal("Invalid email!", "Please enter a valid email.", "error");
 					return;
 				}
 				if (!this.$["generate-info-password"].value) {
@@ -449,7 +449,7 @@
 					that.generateASP = null;
 					if (err && err.message !== "Aborted") {
 						console.error(err);
-						swal("Oops!", "An error occurred while generating your key", "error");
+						swal("Oops!", "An error occurred while generating your key.", "error");
 						return;
 					}
 					generatedKey.sign({}, function(err) {
@@ -465,7 +465,7 @@
 						], (function(err, results) {
 							if (err) {
 								console.error(err);
-								swal("Oops!", "An error occurred while exporting your key", "error");
+								swal("Oops!", "An error occurred while exporting your key.", "error");
 								return;
 							}
 							var privateKey = results[0];
