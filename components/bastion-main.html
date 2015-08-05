@@ -478,6 +478,9 @@
 							this.$["generate-info-email"].value = "";
 							this.$["generate-info-password"].value = "";
 							this.$["generate-key"].close();
+							
+							this.$["message-toast"].text = "Key generated successfully.";
+							this.$["message-toast"].show();
 						}).bind(that));
 					});
 				});
