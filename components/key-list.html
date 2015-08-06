@@ -81,49 +81,9 @@
 				this.keys.contacts = this.keys.contacts.sort(nameSort);
 			},
 			itemClick: function(e) {
-				window.bastionWrapper.goToKeyDetail();
 				var item = e.model.item;
 				var keyToImport = (!!item.keys.private) ? item.keys.private : item.keys.public;
-				kbpgp.KeyManager.import_from_armored_pgp({
-					armored: keyToImport
-				}, (function(err, importedKey) {
-					if (err) {
-						console.error(err);
-						swal("Oops!", "An error occurred while opening that key", "error");
-						return;
-					}
-					var info = {
-						"key": {
-							"type": undefined,
-							"size": 0
-						},
-						"fingerprint": {
-							"pretty": importedKey.get_fp2_formatted(),
-							"array": importedKey.get_fp2_formatted().split(" "),
-							"raw": importedKey.get_pgp_fingerprint_str()
-						},
-						"userids": importedKey.get_userids()
-					};
-					// RSA and ECC keys have different properties under their public key info
-					try {
-						info.key.size = importedKey.primary.key.pub.n.toHex().length * 4;
-						info.key.type = "rsa";
-					}
-					catch (e) {
-						info.key.size = importedKey.primary.key.pub.R.x.toHex().length * 4;
-						info.key.type = "ecc";
-					}
-					// The formatted fingerprint has 2 spaces in the middle which confuses .split(" ")
-					for (var i = 0; i < info.fingerprint.array.length; i++) {
-						if (info.fingerprint.array[i] == "") {
-							info.fingerprint.array.splice(i, 1);
-						}
-					}
-					info.userids = info.userids.map(function (userid) {
-						return userid.components;
-					});
-					this.selectedKeyInfo = info;
-				}).bind(this));
+				window.bastionWrapper.goToKeyDetail(keyToImport);
 			}
 		});
 	</script>

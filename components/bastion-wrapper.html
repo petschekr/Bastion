@@ -16,8 +16,7 @@
 	</style>
 	
 	<template>
-		
-		<neon-animated-pages id="pages" class="flex" selected="0" entry-animation="[[entryAnimation]]" exit-animation="[[exitAnimation]]">
+		<neon-animated-pages id="pages" class="flex" selected="0" entry-animation="[[entryAnimation]]" exit-animation="[[exitAnimation]]" on-neon-animation-finish="animationDone">
 			<neon-animatable>
 				<bastion-main></bastion-main>
 			</neon-animatable>
@@ -33,15 +32,22 @@
 			ready: function() {
 				window.bastionWrapper = this;
 			},
-			goToKeyDetail: function() {
+			goToKeyDetail: function(keyToImport) {
 				this.entryAnimation = "slide-from-right-animation";
 				this.exitAnimation = "slide-left-animation";
 				this.$.pages.selected = 1;
+				this.keyToImport = keyToImport;
+				this.$$("bastion-key").spinner(true);
 			},
 			goToMain: function() {
 				this.entryAnimation = "slide-from-left-animation";
 				this.exitAnimation = "slide-right-animation";
 				this.$.pages.selected = 0;
+			},
+			animationDone: function() {
+				if (this.$.pages.selected === 1) {
+					this.$$("bastion-key").loadKey(this.keyToImport);
+				}
 			}
 		});
 	</script>
