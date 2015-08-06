@@ -1,0 +1,33 @@
+<link rel="import" href="../bower_components/polymer/polymer.html" />
+<link rel="import" href="../bower_components/paper-toolbar/paper-toolbar.html" />
+<link rel="import" href="../bower_components/paper-icon-button/paper-icon-button.html" />
+<link rel="import" href="../bower_components/paper-button/paper-button.html" />
+<link rel="import" href="../bower_components/iron-icons/iron-icons.html" />
+
+<dom-module id="bastion-key">
+	<style>
+		paper-toolbar {
+			background-color: #0074D9 !important;
+			/* Compensates for default 8px margin around <body> */
+			margin-top: -8px;
+			margin-left: -8px;
+			margin-right: -8px;
+		}
+	</style>
+	
+	<template>
+		<paper-toolbar>
+			<paper-icon-button icon="arrow-back" style="margin-right: 10px;" on-tap="goBack"></paper-icon-button>
+			<span class="title">Key</span>
+		</paper-toolbar>
+	</template>
+	
+	<script>
+		Polymer({
+			is: "bastion-key",
+			goBack: function() {
+				window.bastionWrapper.goToMain();
+			}
+		});
+	</script>
+</dom-module>
