@@ -160,14 +160,58 @@
 							}
 						}
 					};
+					function formatDate (date) {
+						var year = date.getFullYear();
+						var month = date.getMonth() + 1;
+						var day = date.getDate();
+						switch (month) {
+							case 1:
+								month = "January";
+								break;
+							case 2:
+								month = "February";
+								break;
+							case 3:
+								month = "March";
+								break;
+							case 4:
+								month = "April";
+								beak;
+							case 5:
+								month = "May";
+								break;
+							case 6:
+								month = "June";
+								break;
+							case 7:
+								month = "July";
+								break;
+							case 8:
+								month = "August";
+								break;
+							case 9:
+								month = "September";
+								break;
+							case 10:
+								month = "October";
+								break;
+							case 11:
+								month = "November";
+								break;
+							case 12:
+								month = "December";
+								break;
+						}
+						return month + " " + day + ", " + year;
+					}
 					var generationDate = new Date(info.date.generation.raw);
-					info.date.generation.formatted = (generationDate.getMonth() + 1) + "-" + generationDate.getDate() + "-" + generationDate.getFullYear();
+					info.date.generation.formatted = formatDate(generationDate);
 					if (info.date.expiry.raw === 0) {
 						info.date.expiry.formatted = "Never";
 					}
 					else {
 						var expiryDate = new Date(info.date.generation.raw + info.date.expiry.raw);
-						info.date.expiry.formatted = (expiryDate.getMonth() + 1) + "-" + expiryDate.getDate() + "-" + expiryDate.getFullYear();
+						info.date.expiry.formatted = formatDate(expiryDate);
 					}
 					// RSA and ECC keys have different properties under their public key info
 					try {
