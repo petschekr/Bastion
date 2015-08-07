@@ -264,11 +264,11 @@
 					}
 					// RSA and ECC keys have different properties under their public key info
 					try {
-						info.key.size = importedKey.primary.key.pub.n.toHex().length * 4;
+						info.key.size = importedKey.primary.key.pub.n.bitLength();
 						info.key.type = "RSA";
 					}
 					catch (e) {
-						info.key.size = importedKey.primary.key.pub.R.x.toHex().length * 4;
+						info.key.size = importedKey.primary.key.pub.curve.p.bitLength();
 						info.key.type = "ECC";
 					}
 					info.userids = info.userids.map(function (userid) {
@@ -292,10 +292,10 @@
 						};
 						
 						try {
-							self.size = subkey.key.pub.n.toHex().length * 4;
+							self.size = subkey.key.pub.n.bitLength();
 						}
 						catch (e) {
-							self.size = subkey.key.pub.R.x.toHex().length * 4;
+							self.size = subkey.key.pub.curve.p.bitLength();
 						}
 						
 						var generationDate = new Date(self.date.generation.raw);
