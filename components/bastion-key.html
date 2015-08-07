@@ -302,6 +302,9 @@
 							capabilities.push("Authenticate data");
 						if (bitfield & values.shared)
 							capabilities.push("Is a shared key");
+						if (capabilities.length === 0) {
+							return "None";
+						}
 						return capabilities.join(", ");
 					}
 					info.key.capabilities = generateCapabilities(importedKey.primary._pgp.flags);
