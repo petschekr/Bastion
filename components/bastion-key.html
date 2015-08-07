@@ -9,6 +9,7 @@
 <link rel="import" href="../bower_components/paper-item/paper-icon-item.html" />
 <link rel="import" href="../bower_components/paper-item/paper-item.html" />
 <link rel="import" href="../bower_components/paper-item/paper-item-body.html" />
+<link rel="import" href="../bower_components/paper-toast/paper-toast.html" />
 <link rel="import" href="../bower_components/paper-styles/paper-styles.html" />
 <link rel="stylesheet" href="../bower_components/sweetalert/dist/sweetalert.css" />
 <script src="../bower_components/sweetalert/dist/sweetalert.min.js"></script>
@@ -96,6 +97,8 @@
 					<div secondary>Email</div>
 					<div>{{selectedKeyInfo.userids.0.email}}</div>
 				</paper-item-body>
+				<a href="{{selectedKeyInfo.userids.0.mailto}}" style="display:none;"></a>
+				<paper-icon-button icon="launch" on-tap="openEmail"></paper-icon-button>
 			</paper-icon-item>
 			<paper-icon-item>
 				<iron-icon icon="event" item-icon></iron-icon>
@@ -117,6 +120,8 @@
 					<div secondary>Key Fingerprint</div>
 					<div>{{selectedKeyInfo.fingerprint.pretty}}</div>
 				</paper-item-body>
+				<span style="display:none;">{{selectedKeyInfo.fingerprint.pretty}}</span>
+				<paper-icon-button icon="content-copy" on-tap="copyFingerprint"></paper-icon-button>
 			</paper-icon-item>
 			<paper-icon-item>
 				<iron-icon icon="communication:vpn-key" item-icon></iron-icon>
@@ -151,6 +156,7 @@
 				</div>
 			</template>
 		</div>
+		<paper-toast id="message-toast" text="Something went wrong"></paper-toast>
 	</template>
 	
 	<script>
@@ -186,8 +192,8 @@
 							"subkeys": []
 						},
 						"fingerprint": {
-							"pretty": importedKey.get_fp2_formatted(),
-							"array": importedKey.get_fp2_formatted().split(" "),
+							"pretty": importedKey.get_fp2_formatted().replace("  ", " "),
+							"array": importedKey.get_fp2_formatted().replace("  ", " ").split(" "),
 							"raw": importedKey.get_pgp_fingerprint_str()
 						},
 						"userids": importedKey.get_userids(),
@@ -265,13 +271,8 @@
 						info.key.size = importedKey.primary.key.pub.R.x.toHex().length * 4;
 						info.key.type = "ECC";
 					}
-					// The formatted fingerprint has 2 spaces in the middle which confuses .split(" ")
-					for (var i = 0; i < info.fingerprint.array.length; i++) {
-						if (info.fingerprint.array[i] == "") {
-							info.fingerprint.array.splice(i, 1);
-						}
-					}
 					info.userids = info.userids.map(function (userid) {
+						userid.components.mailto = "mailto:" + userid.components.email;
 						return userid.components;
 					});
 					info.key.subkeys = importedKey.subkeys.concat().map(function (subkey, index) {
@@ -312,6 +313,15 @@
 					this.spinner(false);
 					this.fadeIn(false);
 				}).bind(this));
+			},
+			openEmail: function (element) {
+				element.currentTarget.parentElement.querySelector("a").click();
+			},
+			copyFingerprint: function (element) {
+				var fingerprint = element.currentTarget.parentElement.querySelector("span").textContent;
+				gui.Clipboard.get().set(fingerprint);
+				this.$["message-toast"].text = "Fingerprint copied to clipboard.";
+				this.$["message-toast"].show();
 			}
 		});
 	</script>
