@@ -4,6 +4,12 @@
 <link rel="import" href="../bower_components/paper-button/paper-button.html" />
 <link rel="import" href="../bower_components/iron-icons/iron-icons.html" />
 <link rel="import" href="../bower_components/paper-spinner/paper-spinner.html" />
+<link rel="import" href="../bower_components/iron-icon/iron-icon.html" />
+<link rel="import" href="../bower_components/iron-icons/communication-icons.html" />
+<link rel="import" href="../bower_components/paper-item/paper-icon-item.html" />
+<link rel="import" href="../bower_components/paper-item/paper-item.html" />
+<link rel="import" href="../bower_components/paper-item/paper-item-body.html" />
+<link rel="import" href="../bower_components/paper-styles/paper-styles.html" />
 <link rel="stylesheet" href="../bower_components/sweetalert/dist/sweetalert.css" />
 <script src="../bower_components/sweetalert/dist/sweetalert.min.js"></script>
 
@@ -21,6 +27,24 @@
 			height: 38px;
 			top: 100px;
 		}
+		paper-item-body.paper-item-body-0[two-line] {
+			min-height: 56px;
+		}
+		.list {
+			padding: 12px 0;
+			background-color: white;
+			display: block;
+			width: 95%;
+			margin: 0 auto;
+			@apply(--shadow-elevation-2dp);
+		}
+		.fadein {
+			opacity: 1;
+			transition: opacity 0.5s;
+		}
+		.fadein.hidden {
+			opacity: 0;
+		}
 	</style>
 	
 	<template>
@@ -31,13 +55,74 @@
 		<div style="display:flex;justify-content:center;align-items:center;">
 			<paper-spinner alt="Loading key" active></paper-spinner>
 		</div>
+		
+		<div class="list fadein hidden">
+			<paper-icon-item>
+				<iron-icon icon="account-box" item-icon></iron-icon>
+				<paper-item-body two-line>
+					<div secondary>Username</div>
+					<div>{{selectedKeyInfo.userids.0.username}}</div>
+				</paper-item-body>
+			</paper-icon-item>
+			<template is="dom-if" if="{{selectedKeyInfo.userids.0.comment}}">
+				<paper-icon-item>
+					<iron-icon icon="communication:chat-bubble" item-icon></iron-icon>
+					<paper-item-body two-line>
+						<div secondary>Comment</div>
+						<div>{{selectedKeyInfo.userids.0.comment}}</div>
+					</paper-item-body>
+				</paper-icon-item>
+			</template>
+			<paper-icon-item>
+				<iron-icon icon="communication:email" item-icon></iron-icon>
+				<paper-item-body two-line>
+					<div secondary>Email</div>
+					<div>{{selectedKeyInfo.userids.0.email}}</div>
+				</paper-item-body>
+			</paper-icon-item>
+			<paper-icon-item>
+				<iron-icon icon="event" item-icon></iron-icon>
+				<paper-item-body two-line>
+					<div secondary>Created on / Expires on</div>
+					<div><span>{{selectedKeyInfo.date.generation.formatted}}</span>&nbsp;/&nbsp;<span>{{selectedKeyInfo.date.expiry.formatted}}</span></div>
+				</paper-item-body>
+			</paper-icon-item>
+			<paper-icon-item>
+				<iron-icon icon="info" item-icon></iron-icon>
+				<paper-item-body two-line>
+					<div secondary>Key ID</div>
+					<div>{{selectedKeyInfo.key.id}}</div>
+				</paper-item-body>
+			</paper-icon-item>
+			<paper-icon-item>
+				<iron-icon icon="gesture" item-icon></iron-icon>
+				<paper-item-body two-line>
+					<div secondary>Key Fingerprint</div>
+					<div>{{selectedKeyInfo.fingerprint.pretty}}</div>
+				</paper-item-body>
+			</paper-icon-item>
+			<paper-icon-item>
+				<iron-icon icon="communication:vpn-key" item-icon></iron-icon>
+				<paper-item-body two-line>
+					<div secondary>Key Type</div>
+					<div><span>{{selectedKeyInfo.key.type}}</span>&nbsp;<span>{{selectedKeyInfo.key.size}}</span>&nbsp;bit</div>
+				</paper-item-body>
+			</paper-icon-item>
+		</div>
 	</template>
 	
 	<script>
 		Polymer({
 			is: "bastion-key",
 			goBack: function() {
+				this.fadeIn(true);
 				window.bastionWrapper.goToMain();
+			},
+			fadeIn: function (hidden) {
+				var fadeInElements = this.querySelectorAll(".fadein");
+				for (var i = 0; i < fadeInElements.length; i++) {
+					this.toggleClass("hidden", hidden, fadeInElements[i]);
+				}
 			},
 			spinner: function (value) {
 				this.toggleAttribute("active", !!value, this.$$("paper-spinner"));
@@ -54,23 +139,44 @@
 					var info = {
 						"key": {
 							"type": undefined,
-							"size": 0
+							"size": 0,
+							"id": importedKey.get_pgp_short_key_id()
 						},
 						"fingerprint": {
 							"pretty": importedKey.get_fp2_formatted(),
 							"array": importedKey.get_fp2_formatted().split(" "),
 							"raw": importedKey.get_pgp_fingerprint_str()
 						},
-						"userids": importedKey.get_userids()
+						"userids": importedKey.get_userids(),
+						"owned": importedKey.has_pgp_private(),
+						"date": {
+							"generation": {
+								"raw": importedKey.primary.lifespan.generated * 1000,
+								"formatted": undefined
+							},
+							"expiry": {
+								"raw": importedKey.primary.lifespan.expire_in * 1000,
+								"formatted": undefined
+							}
+						}
 					};
+					var generationDate = new Date(info.date.generation.raw);
+					info.date.generation.formatted = (generationDate.getMonth() + 1) + "-" + generationDate.getDate() + "-" + generationDate.getFullYear();
+					if (info.date.expiry.raw === 0) {
+						info.date.expiry.formatted = "Never";
+					}
+					else {
+						var expiryDate = new Date(info.date.generation.raw + info.date.expiry.raw);
+						info.date.expiry.formatted = (expiryDate.getMonth() + 1) + "-" + expiryDate.getDate() + "-" + expiryDate.getFullYear();
+					}
 					// RSA and ECC keys have different properties under their public key info
 					try {
 						info.key.size = importedKey.primary.key.pub.n.toHex().length * 4;
-						info.key.type = "rsa";
+						info.key.type = "RSA";
 					}
 					catch (e) {
 						info.key.size = importedKey.primary.key.pub.R.x.toHex().length * 4;
-						info.key.type = "ecc";
+						info.key.type = "ECC";
 					}
 					// The formatted fingerprint has 2 spaces in the middle which confuses .split(" ")
 					for (var i = 0; i < info.fingerprint.array.length; i++) {
@@ -83,7 +189,7 @@
 					});
 					this.selectedKeyInfo = info;
 					this.spinner(false);
-					console.log(info);
+					this.fadeIn(false);
 				}).bind(this));
 			}
 		});
