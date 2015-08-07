@@ -124,6 +124,13 @@
 				<paper-icon-button icon="content-copy" on-tap="copyFingerprint"></paper-icon-button>
 			</paper-icon-item>
 			<paper-icon-item>
+				<iron-icon icon="extension" item-icon></iron-icon>
+				<paper-item-body two-line>
+					<div secondary>Key Capabilities</div>
+					<div>{{selectedKeyInfo.key.capabilities}}</div>
+				</paper-item-body>
+			</paper-icon-item>
+			<paper-icon-item>
 				<iron-icon icon="communication:vpn-key" item-icon></iron-icon>
 				<paper-item-body two-line>
 					<div secondary>Key Type</div>
@@ -144,6 +151,13 @@
 						<paper-item-body two-line>
 							<div secondary>Created on / Expires on</div>
 							<div><span>{{item.date.generation.formatted}}</span>&nbsp;/&nbsp;<span>{{item.date.expiry.formatted}}</span></div>
+						</paper-item-body>
+					</paper-icon-item>
+					<paper-icon-item>
+						<iron-icon icon="extension" item-icon></iron-icon>
+						<paper-item-body two-line>
+							<div secondary>Key Capabilities</div>
+							<div>{{item.capabilities}}</div>
 						</paper-item-body>
 					</paper-icon-item>
 					<paper-icon-item>
@@ -189,6 +203,7 @@
 							"type": undefined,
 							"size": 0,
 							"id": importedKey.get_pgp_short_key_id(),
+							"capabilities": undefined,
 							"subkeys": []
 						},
 						"fingerprint": {
@@ -266,10 +281,37 @@
 					try {
 						info.key.size = importedKey.primary.key.pub.n.bitLength();
 						info.key.type = "RSA";
+					function generateCapabilities (bitfield) {
+						var values = {
+							"certify_keys": 1,
+							"sign_data": 2,
+							"encrypt_comm": 4,
+							"encrypt_storage": 8,
+							"private_split": 16,
+							"auth": 32,
+							"shared": 128
+						};
+						var capabilities = [];
+						if (bitfield & values.certify_keys)
+							capabilities.push("Certify keys");
+						if (bitfield & values.sign_data)
+							capabilities.push("Sign data");
+						if (bitfield & values.encrypt_comm)
+							capabilities.push("Encrypt communications");
+						if (bitfield & values.encrypt_storage)
+							capabilities.push("Encrypt storage");
+						if (bitfield & values.private_split)
+							capabilities.push("Split private keys");
+						if (bitfield & values.auth)
+							capabilities.push("Authenticate data");
+						if (bitfield & values.shared)
+							capabilities.push("Is a shared key");
+						return capabilities.join(", ");
 					}
 					catch (e) {
 						info.key.size = importedKey.primary.key.pub.curve.p.bitLength();
 						info.key.type = "ECC";
+					info.key.capabilities = generateCapabilities(importedKey.primary._pgp.flags);
 					}
 					info.userids = info.userids.map(function (userid) {
 						userid.components.mailto = "mailto:" + userid.components.email;
@@ -288,7 +330,8 @@
 									"formatted": undefined
 								}
 							},
-							"number": index + 1
+							"number": index + 1,
+							"capabilities": undefined,
 						};
 						
 						try {
@@ -297,6 +340,7 @@
 						catch (e) {
 							self.size = subkey.key.pub.curve.p.bitLength();
 						}
+						self.capabilities = generateCapabilities(subkey._pgp.flags);
 						
 						var generationDate = new Date(self.date.generation.raw);
 						self.date.generation.formatted = formatDate(generationDate);
