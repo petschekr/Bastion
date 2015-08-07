@@ -379,16 +379,33 @@
 				
 				// Set ECC flag
 				var use_ecc = (algorithm === "ecc");
+				var subbitlength = 0;
 				if (use_ecc) {
 					switch (bitlength) {
 						case 1024:
 							bitlength = 256;
+							subbitlength = 256;
 							break;
 						case 2048:
 							bitlength = 384;
+							subbitlength = 256;
 							break;
 						case 4096:
 							bitlength = 521;
+							subbitlength = 384;
+							break;
+					}
+				}
+				else {
+					switch (bitlength) {
+						case 1024:
+							subbitlength = 1024;
+							break;
+						case 2048:
+							subbitlength = 2048;
+							break;
+						case 4096:
+							subbitlength = 2048;
 							break;
 					}
 				}
@@ -419,7 +436,7 @@
 				});
 				this.generateASP = progressASP;
 				
-				var F = kbpgp["const"].openpgp;
+				var F = kbpgp.const.openpgp.key_flags;
 				
 				var opts = {
 					asp: progressASP,
@@ -427,18 +444,18 @@
 					ecc: use_ecc,
 					primary: {
 						nbits: bitlength,
-						flags: F.certify_keys | F.sign_data | F.auth | F.encrypt_comm | F.encrypt_storage,
+						flags: F.certify_keys,
 						expire_in: 0 // never expires
 					},
 					subkeys: [
 						{
-							nbits: bitlength,
-							flags: F.sign_data,
+							nbits: subbitlength,
+							flags: F.encrypt_storage | F.encrypt_comm,
 							expire_in: 86400 * 365 * expire
 						},
 						{
-							nbits: bitlength,
-							flags: F.encrypt_comm | F.encrypt_storage,
+							nbits: subbitlength,
+							flags: F.sign_data | F.auth,
 							expire_in: 86400 * 365 * expire
 						}
 					]
