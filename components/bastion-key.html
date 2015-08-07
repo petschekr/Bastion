@@ -355,8 +355,14 @@
 							self.size = subkey.key.pub.nbits();
 						}
 						catch (e) {
-							// ElGamal keys don't have nbits() for some reason
-							self.size = subkey.key.pub.p.toHex().length * 4;
+							try {
+								// ECDH keys don't have nbits()
+								self.size = subkey.key.pub.curve.p.bitLength();
+							}
+							catch (e) {
+								// ElGamal keys don't have nbits()
+								self.size = subkey.key.pub.p.toHex().length * 4;
+							}
 						}
 						self.capabilities = generateCapabilities(subkey._pgp.flags);
 						self.type = keyType(subkey.key.pub.type);
