@@ -37,6 +37,7 @@
 			width: 95%;
 			margin: 0 auto;
 			@apply(--shadow-elevation-2dp);
+			margin-bottom: 24px;
 		}
 		.fadein {
 			opacity: 1;
@@ -44,6 +45,22 @@
 		}
 		.fadein.hidden {
 			opacity: 0;
+		}
+		#subkeys {
+			width: 95%;
+			margin: 0 auto;
+			display: flex;
+		}
+		#subkeys .list {
+			width: calc(50% - 10px);
+			display: inline-block;
+		}
+		#subkeys .list:nth-child(1) {
+			margin-left: auto;
+			margin-right: auto;	
+		}
+		#subkeys .list:nth-child(even) {
+			margin-left: 16px;
 		}
 	</style>
 	
@@ -55,7 +72,7 @@
 		<div style="display:flex;justify-content:center;align-items:center;">
 			<paper-spinner alt="Loading key" active></paper-spinner>
 		</div>
-		
+		<!-- Primary key info -->
 		<div class="list fadein hidden">
 			<paper-icon-item>
 				<iron-icon icon="account-box" item-icon></iron-icon>
@@ -109,6 +126,31 @@
 				</paper-item-body>
 			</paper-icon-item>
 		</div>
+		<!-- Subkeys -->
+		<div class="fadein hidden" id="subkeys">
+			<template is="dom-repeat" items="{{selectedKeyInfo.key.subkeys}}">
+				<div class="list">
+					<paper-icon-item>
+						<iron-icon icon="info" item-icon></iron-icon>&nbsp;Subkey #<span>{{item.number}}</span>
+					</paper-icon-item>
+					
+					<paper-icon-item>
+						<iron-icon icon="event" item-icon></iron-icon>
+						<paper-item-body two-line>
+							<div secondary>Created on / Expires on</div>
+							<div><span>{{item.date.generation.formatted}}</span>&nbsp;/&nbsp;<span>{{item.date.expiry.formatted}}</span></div>
+						</paper-item-body>
+					</paper-icon-item>
+					<paper-icon-item>
+						<iron-icon icon="communication:vpn-key" item-icon></iron-icon>
+						<paper-item-body two-line>
+							<div secondary>Key Type</div>
+							<div><span>{{selectedKeyInfo.key.type}}</span>&nbsp;<span>{{item.size}}</span>&nbsp;bit</div>
+						</paper-item-body>
+					</paper-icon-item>
+				</div>
+			</template>
+		</div>
 	</template>
 	
 	<script>
@@ -140,7 +182,8 @@
 						"key": {
 							"type": undefined,
 							"size": 0,
-							"id": importedKey.get_pgp_short_key_id()
+							"id": importedKey.get_pgp_short_key_id(),
+							"subkeys": []
 						},
 						"fingerprint": {
 							"pretty": importedKey.get_fp2_formatted(),
@@ -230,6 +273,40 @@
 					}
 					info.userids = info.userids.map(function (userid) {
 						return userid.components;
+					});
+					info.key.subkeys = importedKey.subkeys.concat().map(function (subkey, index) {
+						var self = {
+							"size": undefined,
+							"date": {
+								"generation": {
+									"raw": subkey.lifespan.generated * 1000,
+									"formatted": undefined
+								},
+								"expiry": {
+									"raw": subkey.lifespan.expire_in * 1000,
+									"formatted": undefined
+								}
+							},
+							"number": index + 1
+						};
+						
+						try {
+							self.size = subkey.key.pub.n.toHex().length * 4;
+						}
+						catch (e) {
+							self.size = subkey.key.pub.R.x.toHex().length * 4;
+						}
+						
+						var generationDate = new Date(self.date.generation.raw);
+						self.date.generation.formatted = formatDate(generationDate);
+						if (self.date.expiry.raw === 0) {
+							self.date.expiry.formatted = "Never";
+						}
+						else {
+							var expiryDate = new Date(self.date.generation.raw + self.date.expiry.raw);
+							self.date.expiry.formatted = formatDate(expiryDate);
+						}
+						return self;
 					});
 					this.selectedKeyInfo = info;
 					this.spinner(false);
