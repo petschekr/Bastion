@@ -164,7 +164,7 @@
 						<iron-icon icon="communication:vpn-key" item-icon></iron-icon>
 						<paper-item-body two-line>
 							<div secondary>Key Type</div>
-							<div><span>{{selectedKeyInfo.key.type}}</span>&nbsp;<span>{{item.size}}</span>&nbsp;bit</div>
+							<div><span>{{item.type}}</span>&nbsp;<span>{{item.size}}</span>&nbsp;bit</div>
 						</paper-item-body>
 					</paper-icon-item>
 				</div>
@@ -201,7 +201,7 @@
 					var info = {
 						"key": {
 							"type": undefined,
-							"size": 0,
+							"size": importedKey.primary.key.pub.nbits(),
 							"id": importedKey.get_pgp_short_key_id(),
 							"capabilities": undefined,
 							"subkeys": []
@@ -277,10 +277,6 @@
 						var expiryDate = new Date(info.date.generation.raw + info.date.expiry.raw);
 						info.date.expiry.formatted = formatDate(expiryDate);
 					}
-					// RSA and ECC keys have different properties under their public key info
-					try {
-						info.key.size = importedKey.primary.key.pub.n.bitLength();
-						info.key.type = "RSA";
 					function generateCapabilities (bitfield) {
 						var values = {
 							"certify_keys": 1,
@@ -308,11 +304,28 @@
 							capabilities.push("Is a shared key");
 						return capabilities.join(", ");
 					}
-					catch (e) {
-						info.key.size = importedKey.primary.key.pub.curve.p.bitLength();
-						info.key.type = "ECC";
 					info.key.capabilities = generateCapabilities(importedKey.primary._pgp.flags);
+					function keyType (typeNumber) {
+						switch (typeNumber) {
+							case 1:
+								return "RSA";
+							case 2:
+								return "RSA (encrypt only)";
+							case 3:
+								return "RSA (signing only)";
+							case 16:
+								return "ElGamal";
+							case 17:
+								return "DSA";
+							case 18:
+								return "ECDH";
+							case 19:
+								return "ECDSA";
+							case 20:
+								return "ElGamal (sign & encrypt)";
+						}
 					}
+					info.key.type = keyType(importedKey.primary.key.pub.type);
 					info.userids = info.userids.map(function (userid) {
 						userid.components.mailto = "mailto:" + userid.components.email;
 						return userid.components;
@@ -332,15 +345,18 @@
 							},
 							"number": index + 1,
 							"capabilities": undefined,
+							"type": undefined
 						};
 						
 						try {
-							self.size = subkey.key.pub.n.bitLength();
+							self.size = subkey.key.pub.nbits();
 						}
 						catch (e) {
-							self.size = subkey.key.pub.curve.p.bitLength();
+							// ElGamal keys don't have nbits() for some reason
+							self.size = subkey.key.pub.p.toHex().length * 4;
 						}
 						self.capabilities = generateCapabilities(subkey._pgp.flags);
+						self.type = keyType(subkey.key.pub.type);
 						
 						var generationDate = new Date(self.date.generation.raw);
 						self.date.generation.formatted = formatDate(generationDate);
