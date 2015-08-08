@@ -63,6 +63,9 @@
 		#subkeys .list:nth-child(even) {
 			margin-left: 16px;
 		}
+		.recalculate {
+			position: static;
+		}
 	</style>
 	
 	<template>
@@ -388,8 +391,12 @@
 			copyFingerprint: function (element) {
 				var fingerprint = element.currentTarget.parentElement.querySelector("span").textContent;
 				gui.Clipboard.get().set(fingerprint);
-				this.$["message-toast"].text = "Fingerprint copied to clipboard.";
-				this.$["message-toast"].show();
+				this.toggleClass("recalculate", true, this.$["message-toast"]);
+				setTimeout((function() {
+					this.toggleClass("recalculate", false, this.$["message-toast"]);
+					this.$["message-toast"].text = "Fingerprint copied to clipboard.";
+					this.$["message-toast"].show();
+				}).bind(this), 10);
 			}
 		});
 	</script>
