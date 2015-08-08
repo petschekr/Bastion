@@ -66,6 +66,25 @@
 		.recalculate {
 			position: static;
 		}
+		#actions {
+			position: relative;
+			bottom: 24px;
+			text-align: center;
+			margin-bottom: -10px;
+		}
+		#actions paper-button span {
+			position: relative;
+			top: 1px;
+			text-transform: none;
+		}
+		#actions paper-button[primary] {
+			/*color: #4285f4;*/
+			color: #0074D9;
+		}
+		#actions paper-button[danger] {
+			color: var(--paper-red-500);
+			--paper-button-flat-focus-color: var(--paper-red-50);
+		}
 	</style>
 	
 	<template>
@@ -75,6 +94,15 @@
 		</paper-toolbar>
 		<div style="display:flex;justify-content:center;align-items:center;">
 			<paper-spinner alt="Loading key" active></paper-spinner>
+		</div>
+		<div class="fadein hidden" id="actions">
+			<template is="dom-if" if="{{selectedKeyInfo.owned}}">
+				<paper-button primary><iron-icon icon="create"></iron-icon>&nbsp;<span>Sign message</span></paper-button>
+			</template>
+			<template is="dom-if" if="{{!selectedKeyInfo.owned}}">
+				<paper-button primary><iron-icon icon="send"></iron-icon>&nbsp;<span>Encrypt message</span></paper-button>
+			</template>
+			<paper-button danger><iron-icon icon="delete"></iron-icon>&nbsp;<span>Delete key</span></paper-button>
 		</div>
 		<!-- Primary key info -->
 		<div class="list fadein hidden">
