@@ -357,11 +357,13 @@
 						type: "warning",
 						showCancelButton: true,
 						confirmButtonColor: "#DD6B55",
-						confirmButtonText: "Yes, delete it!",
-						closeOnConfirm: false
+						confirmButtonText: "Yes, proceed!",
+						closeOnConfirm: true
 					}, proceed.bind(this));
 				}
-				proceed.bind(this)();
+				else {
+					proceed.bind(this)();
+				}
 				var that = this;
 				function proceed() {
 				// Use params from user input
