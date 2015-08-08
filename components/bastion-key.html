@@ -71,7 +71,7 @@
 	<template>
 		<paper-toolbar>
 			<paper-icon-button icon="arrow-back" style="margin-right: 10px;" on-tap="goBack"></paper-icon-button>
-			<span class="title">Key</span>
+			<span class="title">{{keyTitle}}</span>
 		</paper-toolbar>
 		<div style="display:flex;justify-content:center;align-items:center;">
 			<paper-spinner alt="Loading key" active></paper-spinner>
@@ -178,8 +178,12 @@
 	<script>
 		Polymer({
 			is: "bastion-key",
+			ready: function() {
+				this.keyTitle = "Key";	
+			},
 			goBack: function() {
 				this.fadeIn(true);
+				this.keyTitle = "Key";
 				window.bastionWrapper.goToMain();
 			},
 			fadeIn: function (hidden) {
@@ -381,6 +385,12 @@
 						return self;
 					});
 					this.selectedKeyInfo = info;
+					if (info.owned) {
+						this.keyTitle = "Your key";
+					}
+					else {
+						this.keyTitle = "Contact key";
+					}
 					this.spinner(false);
 					this.fadeIn(false);
 				}).bind(this));
