@@ -222,6 +222,14 @@
 			spinner: function (value) {
 				this.toggleAttribute("active", !!value, this.$$("paper-spinner"));
 			},
+			showMessage: function (message) {
+				this.toggleClass("recalculate", true, this.$["message-toast"]);
+				setTimeout((function() {
+					this.toggleClass("recalculate", false, this.$["message-toast"]);
+					this.$["message-toast"].text = message;
+					this.$["message-toast"].show();
+				}).bind(this), 10);
+			},
 			loadKey: function(keyToImport) {
 				kbpgp.KeyManager.import_from_armored_pgp({
 					armored: keyToImport
@@ -440,12 +448,7 @@
 						]
 					}, (function (err, numRemoved) {
 						if (numRemoved === 0) {
-							this.toggleClass("recalculate", true, this.$["message-toast"]);
-							setTimeout((function() {
-								this.toggleClass("recalculate", false, this.$["message-toast"]);
-								this.$["message-toast"].text = "A problem occurred while deleting this key.";
-								this.$["message-toast"].show();
-							}).bind(this), 10);
+							this.showMessage("A problem occurred while deleting this key.");
 						}
 						else {
 							window.bastionWrapper.$$("bastion-main").loadKeys();
@@ -460,12 +463,7 @@
 			copyFingerprint: function (element) {
 				var fingerprint = element.currentTarget.parentElement.querySelector("span").textContent;
 				gui.Clipboard.get().set(fingerprint);
-				this.toggleClass("recalculate", true, this.$["message-toast"]);
-				setTimeout((function() {
-					this.toggleClass("recalculate", false, this.$["message-toast"]);
-					this.$["message-toast"].text = "Fingerprint copied to clipboard.";
-					this.$["message-toast"].show();
-				}).bind(this), 10);
+				this.showMessage("Fingerprint copied to clipboard.")
 			}
 		});
 	</script>
