@@ -101,7 +101,7 @@
 			<template is="dom-if" if="{{!selectedKeyInfo.owned}}">
 				<paper-button primary><iron-icon icon="send"></iron-icon>&nbsp;<span>Encrypt message</span></paper-button>
 			</template>
-			<paper-button danger><iron-icon icon="delete"></iron-icon>&nbsp;<span>Delete key</span></paper-button>
+			<paper-button danger on-tap="deleteKey"><iron-icon icon="delete"></iron-icon>&nbsp;<span>Delete key</span></paper-button>
 		</div>
 		<!-- Primary key info -->
 		<div class="list fadein hidden">
@@ -412,6 +412,7 @@
 						return self;
 					});
 					this.selectedKeyInfo = info;
+					this.selectedKeyRaw = keyToImport;
 					if (info.owned) {
 						this.keyTitle = "Your key";
 					}
@@ -420,6 +421,37 @@
 					}
 					this.spinner(false);
 					this.fadeIn(false);
+				}).bind(this));
+			},
+			deleteKey: function() {
+				swal({
+					title: "Delete this key?",
+					text: "Are you sure that you want to delete this key? Once it's gone, there's no going back.",
+					type: "warning",
+					showCancelButton: true,
+					confirmButtonColor: "#DD6B55",
+					confirmButtonText: "Yes, delete it!",
+					closeOnConfirm: true
+				}, (function() {
+					db.remove({
+						$or: [
+							{"keys.private": this.selectedKeyRaw},
+							{"keys.public": this.selectedKeyRaw}
+						]
+					}, (function (err, numRemoved) {
+						if (numRemoved === 0) {
+							this.toggleClass("recalculate", true, this.$["message-toast"]);
+							setTimeout((function() {
+								this.toggleClass("recalculate", false, this.$["message-toast"]);
+								this.$["message-toast"].text = "A problem occurred while deleting this key.";
+								this.$["message-toast"].show();
+							}).bind(this), 10);
+						}
+						else {
+							window.bastionWrapper.$$("bastion-main").loadKeys();
+							this.goBack();
+						}
+					}).bind(this));
 				}).bind(this));
 			},
 			openEmail: function (element) {
