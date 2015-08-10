@@ -4,6 +4,7 @@
 <link rel="import" href="../bower_components/neon-animation/neon-animatable.html" />
 <link rel="import" href="../components/bastion-main.html" />
 <link rel="import" href="../components/bastion-key.html" />
+<link rel="import" href="../components/bastion-message.html" />
 
 <dom-module id="bastion-wrapper">
 	<style>
@@ -23,6 +24,9 @@
 			<neon-animatable>
 				<bastion-key></bastion-key>
 			</neon-animatable>
+			<neon-animatable>
+				<bastion-message></bastion-message>
+			</neon-animatable>
 		</neon-animated-pages>
 	</template>
 	
@@ -31,18 +35,25 @@
 			is: "bastion-wrapper",
 			ready: function() {
 				window.bastionWrapper = this;
+				this.history = [0];
 			},
-			goToKeyDetail: function(keyToImport) {
+			goToPage: function(index, additionalInfo) {
 				this.entryAnimation = "slide-from-right-animation";
 				this.exitAnimation = "slide-left-animation";
-				this.$.pages.selected = 1;
-				this.keyToImport = keyToImport;
-				this.$$("bastion-key").spinner(true);
+				if (index === 1) {
+					this.keyToImport = additionalInfo;
+					this.$$("bastion-key").spinner(true);
+				}
+				this.history.push(index);
+				this.$.pages.selected = index;
 			},
-			goToMain: function() {
+			goBack: function() {
+				if (this.history.length <= 1)
+					return;
 				this.entryAnimation = "slide-from-left-animation";
 				this.exitAnimation = "slide-right-animation";
-				this.$.pages.selected = 0;
+				this.history.pop();
+				this.$.pages.selected = this.history[this.history.length - 1];
 			},
 			animationDone: function() {
 				if (this.$.pages.selected === 1) {

@@ -97,10 +97,10 @@
 		</div>
 		<div class="fadein hidden" id="actions">
 			<template is="dom-if" if="{{selectedKeyInfo.owned}}">
-				<paper-button primary><iron-icon icon="create"></iron-icon>&nbsp;<span>Sign message</span></paper-button>
+				<paper-button primary on-tap="useKey"><iron-icon icon="create"></iron-icon>&nbsp;<span>Sign message</span></paper-button>
 			</template>
 			<template is="dom-if" if="{{!selectedKeyInfo.owned}}">
-				<paper-button primary><iron-icon icon="send"></iron-icon>&nbsp;<span>Encrypt message</span></paper-button>
+				<paper-button primary on-tap="useKey"><iron-icon icon="send"></iron-icon>&nbsp;<span>Encrypt message</span></paper-button>
 			</template>
 			<paper-button danger on-tap="deleteKey"><iron-icon icon="delete"></iron-icon>&nbsp;<span>Delete key</span></paper-button>
 		</div>
@@ -212,7 +212,7 @@
 			goBack: function() {
 				this.fadeIn(true);
 				this.keyTitle = "Key";
-				window.bastionWrapper.goToMain();
+				window.bastionWrapper.goBack();
 			},
 			fadeIn: function (hidden) {
 				var fadeInElements = this.querySelectorAll(".fadein");
@@ -457,6 +457,9 @@
 						}
 					}).bind(this));
 				}).bind(this));
+			},
+			useKey: function() {
+				window.bastionWrapper.goToPage(2);
 			},
 			openEmail: function (element) {
 				element.currentTarget.parentElement.querySelector("a").click();

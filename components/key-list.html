@@ -29,7 +29,7 @@
 					<div secondary>{{item.info.0.email}}</div>
 					<paper-ripple></paper-ripple>
 				</paper-item-body>
-				<paper-icon-button icon="create"></paper-icon-button>
+				<paper-icon-button icon="create" on-tap="useKey"></paper-icon-button>
 			</paper-item>
 		</template>
 		<template is="dom-if" if="{{!keys.owned.length}}">
@@ -47,7 +47,7 @@
 					<div secondary>{{item.info.0.email}}</div>
 					<paper-ripple></paper-ripple>
 				</paper-item-body>
-				<paper-icon-button icon="send"></paper-icon-button>
+				<paper-icon-button icon="send" on-tap="useKey"></paper-icon-button>
 			</paper-item>
 		</template>
 		<template is="dom-if" if="{{!keys.contacts.length}}">
@@ -83,7 +83,10 @@
 			itemClick: function(e) {
 				var item = e.model.item;
 				var keyToImport = (!!item.keys.private) ? item.keys.private : item.keys.public;
-				window.bastionWrapper.goToKeyDetail(keyToImport);
+				window.bastionWrapper.goToPage(1, keyToImport);
+			},
+			useKey: function() {
+				window.bastionWrapper.goToPage(2);
 			}
 		});
 	</script>

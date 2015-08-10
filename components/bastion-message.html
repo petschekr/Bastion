@@ -1,0 +1,74 @@
+<link rel="import" href="../bower_components/polymer/polymer.html" />
+<link rel="import" href="../bower_components/paper-toolbar/paper-toolbar.html" />
+<link rel="import" href="../bower_components/paper-icon-button/paper-icon-button.html" />
+<link rel="import" href="../bower_components/paper-button/paper-button.html" />
+<link rel="import" href="../bower_components/iron-icons/iron-icons.html" />
+<link rel="import" href="../bower_components/paper-spinner/paper-spinner.html" />
+<link rel="import" href="../bower_components/iron-icon/iron-icon.html" />
+<link rel="import" href="../bower_components/iron-icons/communication-icons.html" />
+<link rel="import" href="../bower_components/paper-item/paper-icon-item.html" />
+<link rel="import" href="../bower_components/paper-item/paper-item.html" />
+<link rel="import" href="../bower_components/paper-item/paper-item-body.html" />
+<link rel="import" href="../bower_components/paper-toast/paper-toast.html" />
+<link rel="import" href="../bower_components/paper-styles/paper-styles.html" />
+<link rel="stylesheet" href="../bower_components/sweetalert/dist/sweetalert.css" />
+<script src="../bower_components/sweetalert/dist/sweetalert.min.js"></script>
+
+<dom-module id="bastion-message">
+	<style>
+		paper-toolbar {
+			background-color: #0074D9 !important;
+			/* Compensates for default 8px margin around <body> */
+			margin-top: -8px;
+			margin-left: -8px;
+			margin-right: -8px;
+		}
+		paper-spinner {
+			width: 38px;
+			height: 38px;
+			top: 100px;
+		}
+	</style>
+	
+	<template>
+		<paper-toolbar>
+			<paper-icon-button icon="arrow-back" style="margin-right: 10px;" on-tap="goBack"></paper-icon-button>
+			<span class="title">Send a message</span>
+		</paper-toolbar>
+		
+		<h3>Hello world</h3>
+
+		<paper-toast id="message-toast" text="Something went wrong"></paper-toast>
+	</template>
+	
+	<script>
+		Polymer({
+			is: "bastion-message",
+			ready: function() {
+				
+			},
+			goBack: function() {
+				// this.fadeIn(true);
+				// this.keyTitle = "Key";
+				window.bastionWrapper.goBack();
+			},
+			fadeIn: function (hidden) {
+				var fadeInElements = this.querySelectorAll(".fadein");
+				for (var i = 0; i < fadeInElements.length; i++) {
+					this.toggleClass("hidden", hidden, fadeInElements[i]);
+				}
+			},
+			spinner: function (value) {
+				this.toggleAttribute("active", !!value, this.$$("paper-spinner"));
+			},
+			showMessage: function (message) {
+				this.toggleClass("recalculate", true, this.$["message-toast"]);
+				setTimeout((function() {
+					this.toggleClass("recalculate", false, this.$["message-toast"]);
+					this.$["message-toast"].text = message;
+					this.$["message-toast"].show();
+				}).bind(this), 10);
+			}
+		});
+	</script>
+</dom-module>
