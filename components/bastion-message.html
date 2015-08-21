@@ -9,20 +9,50 @@
 			margin-left: -8px;
 			margin-right: -8px;
 		}
-		paper-spinner {
-			width: 38px;
-			height: 38px;
-			top: 100px;
+		.list {
+			padding: 12px 18px;
+			background-color: white;
+			display: block;
+			margin: 24px auto;
+			margin-left: 100px;
+			margin-right: 100px;
+			@apply(--shadow-elevation-2dp);
+		}
+		#actions {
+			text-align: center;
+			margin-bottom: 24px;
+		}
+		#actions paper-button {
+			text-transform: none;
+			font-weight: normal !important;
+		}
+		#actions paper-button[primary] {
+			color: #0074D9;
+		}
+		#actions paper-button[disabled] {
+			color: #a8a8a8;
+		}
+		#actions paper-button[danger] {
+			color: var(--paper-red-500);
+			--paper-button-flat-focus-color: var(--paper-red-50);
 		}
 	</style>
 	
 	<template>
 		<paper-toolbar>
 			<paper-icon-button icon="arrow-back" style="margin-right: 10px;" on-tap="goBack"></paper-icon-button>
-			<span class="title">Send a message</span>
+			<span class="title">[[primaryMessage]]</span>
 		</paper-toolbar>
 		
-		<h3>Hello world</h3>
+		<div class="list">
+			<paper-input id="recipient" label="Recipient" on-input="fillRecipient"></paper-input>
+			<paper-input id="signer" label="Your signing key" on-input="fillSigner"></paper-input>
+			<paper-textarea id="message" label="Your message"></paper-textarea>
+		</div>
+		<div id="actions">
+			<paper-button primary on-tap="" disabled>[[primaryMessage]]</paper-button>
+			<paper-button danger on-tap="cancel">Cancel</paper-button>
+		</div>
 
 		<paper-toast id="message-toast" text="Something went wrong"></paper-toast>
 	</template>
@@ -31,21 +61,10 @@
 		Polymer({
 			is: "bastion-message",
 			ready: function() {
-				
+				this.primaryMessage = "Sign or encrypt"
 			},
 			goBack: function() {
-				// this.fadeIn(true);
-				// this.keyTitle = "Key";
 				window.bastionWrapper.goBack();
-			},
-			fadeIn: function (hidden) {
-				var fadeInElements = this.querySelectorAll(".fadein");
-				for (var i = 0; i < fadeInElements.length; i++) {
-					this.toggleClass("hidden", hidden, fadeInElements[i]);
-				}
-			},
-			spinner: function (value) {
-				this.toggleAttribute("active", !!value, this.$$("paper-spinner"));
 			},
 			showMessage: function (message) {
 				this.toggleClass("recalculate", true, this.$["message-toast"]);
@@ -54,6 +73,42 @@
 					this.$["message-toast"].text = message;
 					this.$["message-toast"].show();
 				}).bind(this), 10);
+			},
+			cancel: function() {
+				this.$.recipient.value = "";
+				this.$.signer.value = "";
+				this.$.message.value = "";
+				this.primaryMessage = "Sign or encrypt";
+				this.toggleAttribute("disabled", true, this.$$("paper-button[primary]"));				
+				this.goBack();
+			},
+			computeAction() {
+				var recipient = this.$.recipient.value;
+				var signer = this.$.signer.value;
+				if (!recipient && !signer) {
+					this.primaryMessage = "Sign or encrypt";
+					this.toggleAttribute("disabled", true, this.$$("paper-button[primary]"));
+				}
+				else if (!recipient) {
+					this.primaryMessage = "Sign message";
+					this.toggleAttribute("disabled", false, this.$$("paper-button[primary]"));
+				}
+				else if (!signer) {
+					this.primaryMessage = "Encrypt message";
+					this.toggleAttribute("disabled", false, this.$$("paper-button[primary]"));
+				}
+				else {
+					this.primaryMessage = "Sign and encrypt message";
+					this.toggleAttribute("disabled", false, this.$$("paper-button[primary]"));
+				}
+			},
+			fillRecipient: function () {
+				this.computeAction();
+				var recipient = this.$.recipient.value;
+			},
+			fillSigner: function() {
+				this.computeAction();
+				var signer = this.$.signer.value;				
 			}
 		});
 	</script>
