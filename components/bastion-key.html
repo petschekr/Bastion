@@ -325,11 +325,11 @@
 						if (bitfield & values.encrypt_storage)
 							capabilities.push("Encrypt storage");
 						if (bitfield & values.private_split)
-							capabilities.push("Split private keys");
+							capabilities.push("Has split private keys"); // The private component of this key may have been split by a secret-sharing mechanism (from RFC 4880).
 						if (bitfield & values.auth)
-							capabilities.push("Authenticate data");
+							capabilities.push("Authenticate user");
 						if (bitfield & values.shared)
-							capabilities.push("Is a shared key");
+							capabilities.push("Is a shared key"); // The private component of this key may be in the possession of more than one person (from RFC 4880).
 						if (capabilities.length === 0) {
 							return "None";
 						}
