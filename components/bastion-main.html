@@ -235,7 +235,7 @@
 						}
 						if (importedKey.is_pgp_locked()) {
 							// Need a password before public key can be exported
-							if (password) {
+							if (password !== undefined) {
 								// From key generation dialog where password is known
 								importedKey.unlock_pgp({
 									passphrase: password
