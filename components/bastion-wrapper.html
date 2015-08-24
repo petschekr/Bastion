@@ -44,6 +44,9 @@
 					this.keyToImport = additionalInfo;
 					this.$$("bastion-key").spinner(true);
 				}
+				if (index === 2) {
+					this.$$("bastion-message").refresh();
+				}
 				this.history.push(index);
 				this.$.pages.selected = index;
 			},

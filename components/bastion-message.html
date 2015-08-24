@@ -22,7 +22,7 @@
 			text-align: center;
 			margin-bottom: 24px;
 		}
-		#actions paper-button {
+		paper-button {
 			text-transform: none;
 			font-weight: normal !important;
 		}
@@ -36,6 +36,17 @@
 			color: var(--paper-red-500);
 			--paper-button-flat-focus-color: var(--paper-red-50);
 		}
+		h4 {
+			margin-bottom: 0;
+			margin-top: 10px;
+		}
+		paper-item {
+			padding: 0;
+		}
+		.search-results {
+			overflow: auto;
+			max-height: 216px; /* 72px * 3 */
+		}
 	</style>
 	
 	<template>
@@ -45,10 +56,43 @@
 		</paper-toolbar>
 		
 		<div class="list">
-			<paper-input id="recipient" label="Recipient" on-input="fillRecipient"></paper-input>
-			<paper-input id="signer" label="Your signing key" on-input="fillSigner"></paper-input>
+			<h4>Recipient(s)</h4>
+			<paper-input id="recipientInput" label="Search contacts and your keys" on-input="searchRecipient"></paper-input>
+			
+			<div class="search-results">
+				<template is="dom-repeat" items="[[recipientSearchKeys]]">
+					<paper-item>
+						<paper-item-body two-line on-tap="itemClick">
+							<div>[[item.info.0.username]]</div>
+							<div secondary>[[item.info.0.email]]</div>
+						</paper-item-body>
+						<paper-icon-button icon="add" on-tap="addRecipient" id="[[item._id]]"></paper-icon-button>
+					</paper-item>
+				</template>
+			</div>
+		</div>
+		
+		<div class="list">
+			<h4>Signing key</h4>
+			<paper-input id="signerInput" label="Search your keys" on-input="searchSigner"></paper-input>
+			
+			<div class="search-results">
+				<template is="dom-repeat" items="[[signingSearchKeys]]">
+					<paper-item>
+						<paper-item-body two-line on-tap="itemClick">
+							<div>[[item.info.0.username]]</div>
+							<div secondary>[[item.info.0.email]]</div>
+						</paper-item-body>
+						<paper-icon-button icon="add" on-tap="addSigner" id="[[item._id]]" exclusive></paper-icon-button>
+					</paper-item>
+				</template>
+			</div>
+		</div>
+		
+		<div class="list">
 			<paper-textarea id="message" label="Your message"></paper-textarea>
 		</div>
+		
 		<div id="actions">
 			<paper-button primary on-tap="" disabled>[[primaryMessage]]</paper-button>
 			<paper-button danger on-tap="cancel">Cancel</paper-button>
@@ -61,7 +105,14 @@
 		Polymer({
 			is: "bastion-message",
 			ready: function() {
-				this.primaryMessage = "Sign or encrypt"
+				this.primaryMessage = "Sign or encrypt";
+				this.encryptionKeys = [];
+				this.signingKey = null;
+			},
+			refresh: function() {
+				this.keys = window.keys;
+				this.recipientSearchKeys = this.keys.contacts.concat(this.keys.owned);
+				this.signingSearchKeys = this.keys.owned.concat();
 			},
 			goBack: function() {
 				window.bastionWrapper.goBack();
@@ -75,25 +126,25 @@
 				}).bind(this), 10);
 			},
 			cancel: function() {
-				this.$.recipient.value = "";
-				this.$.signer.value = "";
+				this.$.recipientInput.value = "";
+				this.$.signerInput.value = "";
 				this.$.message.value = "";
 				this.primaryMessage = "Sign or encrypt";
+				this.encryptionKeys = [];
+				this.signingKey = null;
 				this.toggleAttribute("disabled", true, this.$$("paper-button[primary]"));				
 				this.goBack();
 			},
 			computeAction() {
-				var recipient = this.$.recipient.value;
-				var signer = this.$.signer.value;
-				if (!recipient && !signer) {
+				if (this.encryptionKeys.length === 0 && !this.signingKey) {
 					this.primaryMessage = "Sign or encrypt";
 					this.toggleAttribute("disabled", true, this.$$("paper-button[primary]"));
 				}
-				else if (!recipient) {
+				else if (this.encryptionKeys.length === 0) {
 					this.primaryMessage = "Sign message";
 					this.toggleAttribute("disabled", false, this.$$("paper-button[primary]"));
 				}
-				else if (!signer) {
+				else if (!this.signingKey) {
 					this.primaryMessage = "Encrypt message";
 					this.toggleAttribute("disabled", false, this.$$("paper-button[primary]"));
 				}
@@ -102,13 +153,85 @@
 					this.toggleAttribute("disabled", false, this.$$("paper-button[primary]"));
 				}
 			},
-			fillRecipient: function () {
-				this.computeAction();
-				var recipient = this.$.recipient.value;
+			searchRecipient: function() {
+				var toSearch = this.$.recipientInput.inputElement.value.toLowerCase();
+				this.recipientSearchKeys = [];
+				if (toSearch === "") {
+					this.recipientSearchKeys = this.keys.contacts.concat(this.keys.owned);
+					return;
+				}
+				var results = [];
+				this.keys.contacts.forEach(function (contact) {
+					if (contact.info[0].username.toLowerCase().indexOf(toSearch) !== -1 || contact.info[0].email.toLowerCase().indexOf(toSearch) !== -1)
+						results.push(contact);
+				});
+				this.keys.owned.forEach(function (contact) {
+					if (contact.info[0].username.toLowerCase().indexOf(toSearch) !== -1 || contact.info[0].email.toLowerCase().indexOf(toSearch) !== -1)
+						results.push(contact);
+				});
+				this.recipientSearchKeys = results;
 			},
-			fillSigner: function() {
+			searchSigner: function() {
+				var toSearch = this.$.signerInput.inputElement.value.toLowerCase();
+				this.signingSearchKeys = [];
+				if (toSearch === "") {
+					this.signingSearchKeys = this.keys.owned.concat();
+					return;
+				}
+				var results = [];
+				this.keys.owned.forEach(function (contact) {
+					if (contact.info[0].username.toLowerCase().indexOf(toSearch) !== -1 || contact.info[0].email.toLowerCase().indexOf(toSearch) !== -1)
+						results.push(contact);
+				});
+				this.signingSearchKeys = results;
+			},
+			addRecipient: function (event) {
+				var id = event.currentTarget.id;
+				if (event.currentTarget.icon === "add") {
+					// Add recipient
+					for (var i = 0; i < this.recipientSearchKeys.length; i++) {
+						var key = this.recipientSearchKeys[i];
+						if (key._id === id) {
+							this.encryptionKeys.push(key);
+							break;
+						}
+					}
+					event.currentTarget.icon = "check";
+				}
+				else {
+					// Remove recipient
+					for (var i = 0; i < this.encryptionKeys.length; i++) {
+						var key = this.encryptionKeys[i];
+						if (key._id === id) {
+							this.encryptionKeys.splice(i, 1);
+						}
+					}
+					event.currentTarget.icon = "add";
+				}
 				this.computeAction();
-				var signer = this.$.signer.value;				
+			},
+			addSigner: function (event) {
+				var id = event.currentTarget.id;
+				this.signingKey = null;
+				if (event.currentTarget.icon === "add") {
+					// Add signing key
+					var buttons = this.querySelectorAll("paper-icon-button[exclusive]");
+					for (var i = 0; i < buttons.length; i++) {
+						buttons[i].icon = "add";
+					}
+					for (var i = 0; i < this.signingSearchKeys.length; i++) {
+						var key = this.signingSearchKeys[i];
+						if (key._id === id) {
+							this.signingKey = key;
+							event.currentTarget.icon = "check";
+						}
+					}
+				}
+				else {
+					// Remove signing key
+					event.currentTarget.icon = "add";
+				}
+				this.computeAction();				
 			}
 		});
 	</script>
