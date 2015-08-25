@@ -43,6 +43,10 @@
 		paper-item {
 			padding: 0;
 		}
+		paper-item small {
+			position: relative;
+			top: -1px;
+		}
 		.search-results {
 			overflow: auto;
 			max-height: 216px; /* 72px * 3 */
@@ -63,7 +67,12 @@
 				<template is="dom-repeat" items="[[recipientSearchKeys]]">
 					<paper-item>
 						<paper-item-body two-line on-tap="itemClick">
-							<div>[[item.info.0.username]]</div>
+							<template is="dom-if" if="[[!item.info.0.comment]]">
+								<div>[[item.info.0.username]]</div>
+							</template>
+							<template is="dom-if" if="[[item.info.0.comment]]">
+								<div><span>[[item.info.0.username]]</span><small>&nbsp;(<span>[[item.info.0.comment]]</span>)</small></div>
+							</template>
 							<div secondary>[[item.info.0.email]]</div>
 						</paper-item-body>
 						<paper-icon-button icon="add" on-tap="addRecipient" id="[[item._id]]"></paper-icon-button>
@@ -80,7 +89,12 @@
 				<template is="dom-repeat" items="[[signingSearchKeys]]">
 					<paper-item>
 						<paper-item-body two-line on-tap="itemClick">
-							<div>[[item.info.0.username]]</div>
+							<template is="dom-if" if="[[!item.info.0.comment]]">
+								<div>[[item.info.0.username]]</div>
+							</template>
+							<template is="dom-if" if="[[item.info.0.comment]]">
+								<div><span>[[item.info.0.username]]</span><small>&nbsp;(<span>[[item.info.0.comment]]</span>)</small></div>
+							</template>
 							<div secondary>[[item.info.0.email]]</div>
 						</paper-item-body>
 						<paper-icon-button icon="add" on-tap="addSigner" id="[[item._id]]" exclusive></paper-icon-button>
