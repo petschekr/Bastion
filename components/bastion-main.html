@@ -479,9 +479,14 @@
 					generatedKey.sign({}, function(err) {
 						async.parallel([
 							function(callback) {
-								generatedKey.export_pgp_private({
-							    	passphrase: password
-							  	}, callback);
+								if (password) {
+									generatedKey.export_pgp_private({
+										passphrase: password
+									}, callback);
+								}
+								else {
+									generatedKey.export_pgp_private({}, callback);
+								}
 							},
 							function(callback) {
 								generatedKey.export_pgp_public({}, callback);
@@ -494,7 +499,7 @@
 							}
 							var privateKey = results[0];
 							var publicKey = results[1];
-							this.importKey(privateKey, password);
+							this.importKey(privateKey, password || undefined);
 							// Reset generation dialog
 							this.$["generate-button"].removeAttribute("disabled");
 							this.$["generate-status"].textContent = this.previousGenerateStatus;
