@@ -107,7 +107,7 @@
 		</div>
 		
 		<div class="list">
-			<paper-textarea id="message" label="Your message"></paper-textarea>
+			<paper-textarea id="message" label="Your message" on-input="computeAction"></paper-textarea>
 		</div>
 		
 		<div id="actions">
@@ -159,15 +159,15 @@
 				}
 				else if (this.encryptionKeys.length === 0) {
 					this.primaryMessage = "Sign message";
-					this.toggleAttribute("disabled", false, this.$$("paper-button[primary]"));
+					this.toggleAttribute("disabled", !this.$.message.value, this.$$("paper-button[primary]"));
 				}
 				else if (!this.signingKey) {
 					this.primaryMessage = "Encrypt message";
-					this.toggleAttribute("disabled", false, this.$$("paper-button[primary]"));
+					this.toggleAttribute("disabled", !this.$.message.value, this.$$("paper-button[primary]"));
 				}
 				else {
 					this.primaryMessage = "Sign and encrypt message";
-					this.toggleAttribute("disabled", false, this.$$("paper-button[primary]"));
+					this.toggleAttribute("disabled", !this.$.message.value, this.$$("paper-button[primary]"));
 				}
 			},
 			searchRecipient: function() {
