@@ -111,7 +111,7 @@
 		</div>
 		
 		<div id="actions">
-			<paper-button primary on-tap="" disabled>[[primaryMessage]]</paper-button>
+			<paper-button primary on-tap="encrypt" disabled>[[primaryMessage]]</paper-button>
 			<paper-button danger on-tap="cancel">Cancel</paper-button>
 		</div>
 
@@ -249,6 +249,134 @@
 					event.currentTarget.icon = "add";
 				}
 				this.computeAction();				
+			},
+			encrypt: function() {
+				// Create KeyManagers for each key involved in this operation
+				// First, import the signing key which may require a password
+				function getSigningKeyManager (key, callback) {
+					kbpgp.KeyManager.import_from_armored_pgp({
+						armored: key.keys.private
+					}, function(err, importedKey) {
+						if (err) {
+							console.error(err);
+							swal("Oops!", "Unable to import signing key.", "error");
+							callback(true);
+							return;
+						}
+						
+						// TODO: keys without locked follow the following "if" statement
+						
+						if (importedKey.is_pgp_locked()) {
+							// Prompt for password
+							swal({
+								title: "Unlock your key",
+								text: "Please enter your passphrase to use the signing key that you selected.",
+								type: "input",
+								showCancelButton: true,
+								closeOnConfirm: false,
+								inputPlaceholder: "Passphrase",
+								inputType: "password"
+							}, function(inputPassword) {
+								if (inputPassword === false)
+									return false;
+								if (inputPassword === "") {
+									swal.showInputError("Please enter your passphrase.");
+									return false;
+								}
+								importedKey.unlock_pgp({
+									passphrase: inputPassword
+								}, function(err) {
+									swal.close();
+									if (err) {
+										console.error(err);
+										setTimeout(function() {
+											swal("Oops!", "An error occurred while unlocking your key. Your passphrase might be incorrect.", "error");
+										}, 100);
+										callback(true);
+										return;
+									}
+									callback(null, importedKey);
+								});
+							});
+						}
+						else {
+							callback(null, importedKey);
+						}
+					});
+				}
+				function getEncryptionKeyManager (key, callback) {
+					kbpgp.KeyManager.import_from_armored_pgp({
+						armored: key.keys.public
+					}, callback);
+				}
+				
+				var asp = new kbpgp.ASP({
+					progress_hook: function (info) {
+						console.log("progress...", info);
+					}
+				});
+				var params = {
+					msg: this.$.message.value,
+					asp: asp
+				};
+				var signAction = !!this.signingKey;
+				var encryptAction = this.encryptionKeys.length > 0;
+				
+				if (signAction && encryptAction) {
+					// Sign and encrypt
+					var localSigningKey = this.signingKey;
+					var localEncryptionKeys = this.encryptionKeys;
+					async.parallel([
+						function (callback) {
+							getSigningKeyManager(localSigningKey, callback);
+						},
+						function (callback) {
+							async.map(localEncryptionKeys, getEncryptionKeyManager, callback);
+						}
+					], function (err, results) {
+						if (err) {
+							// err === true if already handled
+							if (err !== true) {
+								console.error(err);
+								swal("Oops!", "An error occurred while preparing for encryption.", "error");
+							}
+							return;
+						}
+						var signingKeyManager = results[0];
+						var encryptionKeyManagers = results[1];
+						params.sign_with = signingKeyManager;
+						params.encrypt_for = encryptionKeyManagers;
+						finishEncryption();
+					});
+				}
+				else if (signAction) {
+					// Sign only
+					getSigningKeyManager(this.signingKey, function (err, signingKeyManager) {
+						if (err)
+							return;
+						params.sign_with = signingKeyManager;
+						finishEncryption();
+					});
+				}
+				else if (encryptAction) {
+					// Encrypt only
+					async.map(this.encryptionKeys, getEncryptionKeyManager, function (err, encryptionKeyManagers) {
+						if (err) {
+							console.error(err);
+							swal("Oops!", "An error occurred while preparing for encryption.", "error");
+							return;
+						}
+						params.encrypt_for = encryptionKeyManagers;
+						finishEncryption();
+					});
+				}
+				
+				function finishEncryption() {
+					kbpgp.box(params, function(err, resultString, resultBuffer) {
+						console.log(resultString);
+					});
+					//asp.canceler().cancel();
+				}
 			}
 		});
 	</script>
