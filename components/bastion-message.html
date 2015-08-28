@@ -58,7 +58,7 @@
 	
 	<template>
 		<paper-toolbar>
-			<paper-icon-button icon="arrow-back" style="margin-right: 10px;" on-tap="goBack"></paper-icon-button>
+			<paper-icon-button icon="arrow-back" style="margin-right: 10px;" on-tap="cancel"></paper-icon-button>
 			<span class="title">[[primaryMessage]]</span>
 		</paper-toolbar>
 		
@@ -149,7 +149,11 @@
 				this.primaryMessage = "Sign or encrypt";
 				this.encryptionKeys = [];
 				this.signingKey = null;
-				this.toggleAttribute("disabled", true, this.$$("paper-button[primary]"));				
+				this.toggleAttribute("disabled", true, this.$$("paper-button[primary]"));
+				var icons = this.querySelectorAll("paper-icon-button[id]");
+				for (var i = 0; i < icons.length; i++) {
+					icons[i].icon = "add";
+				}
 				this.goBack();
 			},
 			computeAction() {
