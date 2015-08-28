@@ -125,6 +125,12 @@
 				this.primaryMessage = "Sign or encrypt";
 				this.encryptionKeys = [];
 				this.signingKey = null;
+				this.encrypting = false;
+				this.asp = new kbpgp.ASP({
+					progress_hook: function (info) {
+						console.log("progress...", info);
+					}
+				});
 			},
 			refresh: function() {
 				this.keys = window.keys;
@@ -154,6 +160,10 @@
 				for (var i = 0; i < icons.length; i++) {
 					icons[i].icon = "add";
 				}
+				if (this.encrypting) {
+					this.asp.canceler().cancel();
+					this.encrypting = false;
+				}
 				this.goBack();
 			},
 			computeAction() {
@@ -163,15 +173,15 @@
 				}
 				else if (this.encryptionKeys.length === 0) {
 					this.primaryMessage = "Sign message";
-					this.toggleAttribute("disabled", !this.$.message.value, this.$$("paper-button[primary]"));
+					this.toggleAttribute("disabled", !this.$.message.value || this.encrypting, this.$$("paper-button[primary]"));
 				}
 				else if (!this.signingKey) {
 					this.primaryMessage = "Encrypt message";
-					this.toggleAttribute("disabled", !this.$.message.value, this.$$("paper-button[primary]"));
+					this.toggleAttribute("disabled", !this.$.message.value || this.encrypting, this.$$("paper-button[primary]"));
 				}
 				else {
 					this.primaryMessage = "Sign and encrypt message";
-					this.toggleAttribute("disabled", !this.$.message.value, this.$$("paper-button[primary]"));
+					this.toggleAttribute("disabled", !this.$.message.value || this.encrypting, this.$$("paper-button[primary]"));
 				}
 			},
 			searchRecipient: function() {
@@ -285,6 +295,7 @@
 									swal.showInputError("Please enter your passphrase.");
 									return false;
 								}
+								setEncrypting(true);
 								importedKey.unlock_pgp({
 									passphrase: inputPassword
 								}, function(err) {
@@ -311,15 +322,14 @@
 						armored: key.keys.public
 					}, callback);
 				}
+				var setEncrypting = (function (value) {
+					this.encrypting = value;
+					this.computeAction();
+				}).bind(this);
 				
-				var asp = new kbpgp.ASP({
-					progress_hook: function (info) {
-						console.log("progress...", info);
-					}
-				});
 				var params = {
 					msg: this.$.message.value,
-					asp: asp
+					asp: this.asp
 				};
 				var signAction = !!this.signingKey;
 				var encryptAction = this.encryptionKeys.length > 0;
@@ -338,6 +348,7 @@
 					], function (err, results) {
 						if (err) {
 							// err === true if already handled
+							setEncrypting(false);
 							if (err !== true) {
 								console.error(err);
 								swal("Oops!", "An error occurred while preparing for encryption.", "error");
@@ -354,16 +365,20 @@
 				else if (signAction) {
 					// Sign only
 					getSigningKeyManager(this.signingKey, function (err, signingKeyManager) {
-						if (err)
+						if (err) {
+							setEncrypting(false);
 							return;
+						}
 						params.sign_with = signingKeyManager;
 						finishEncryption();
 					});
 				}
 				else if (encryptAction) {
 					// Encrypt only
+					setEncrypting(true); // Normally called as part of the signing key unlock
 					async.map(this.encryptionKeys, getEncryptionKeyManager, function (err, encryptionKeyManagers) {
 						if (err) {
+							setEncrypting(false);
 							console.error(err);
 							swal("Oops!", "An error occurred while preparing for encryption.", "error");
 							return;
@@ -375,9 +390,10 @@
 				
 				function finishEncryption() {
 					kbpgp.box(params, function(err, resultString, resultBuffer) {
+						// Reenable button
+						setEncrypting(false);
 						console.log(resultString);
 					});
-					//asp.canceler().cancel();
 				}
 			}
 		});
