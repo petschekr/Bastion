@@ -445,8 +445,24 @@
 				}).bind(this));
 			},
 			useKey: function() {
-				this.fadeIn(true);
-				window.bastionWrapper.goToPage(2);
+				// Get database's ID for this key
+				this.async((function() {
+					db.find({
+						$or: [
+							{"keys.private": this.selectedKeyRaw},
+							{"keys.public": this.selectedKeyRaw}
+						]
+					}, (function (err, docs) {
+						if (err) {
+							console.error(err);
+							swal("Oops!", "An error occurred while querying the database for this key", "error");
+							return;
+						}
+						var id = docs[0]._id;
+						this.fadeIn(true);
+						window.bastionWrapper.goToPage(2, id);
+					}).bind(this));
+				}).bind(this));
 			},
 			openEmail: function (element) {
 				element.currentTarget.parentElement.querySelector("a").click();
