@@ -180,18 +180,18 @@
 			},
 			showUploadKey: function() {
 				var chooser = this.$["add-key-uploader"];
-				chooser.addEventListener("change", (function(e) {
-					fs.readFile(e.target.value, "utf8", (function (err, keyData) {
+				chooser.onchange = (function() {
+					fs.readFile(chooser.value, "utf8", (function (err, keyData) {
+						chooser.value = "";
 						if (err) {
 							console.error(err);
 							swal("Oops!", "An error occurred while reading the selected file.", "error");
 							return;
 						}
-						e.target.value = "";
 						this.importKey(keyData);
 						this.$["add-key"].close();
 					}).bind(this));
-				}).bind(this), false);
+				}).bind(this);
 				chooser.click();
 			},
 			addKey: function() {
