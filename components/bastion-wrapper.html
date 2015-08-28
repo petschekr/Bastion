@@ -35,11 +35,9 @@
 			is: "bastion-wrapper",
 			ready: function() {
 				window.bastionWrapper = this;
-				this.history = [0];
+				this.history = [{index: 0, info: null}];
 			},
-			goToPage: function(index, additionalInfo) {
-				this.entryAnimation = "slide-from-right-animation";
-				this.exitAnimation = "slide-left-animation";
+			contextualActions: function(index, additionalInfo) {
 				if (index === 1) {
 					this.keyToImport = additionalInfo;
 					this.$$("bastion-key").spinner(true);
@@ -47,7 +45,15 @@
 				if (index === 2) {
 					this.$$("bastion-message").refresh(additionalInfo);
 				}
-				this.history.push(index);
+			},
+			goToPage: function(index, additionalInfo) {
+				this.entryAnimation = "slide-from-right-animation";
+				this.exitAnimation = "slide-left-animation";
+				this.contextualActions(index, additionalInfo);
+				this.history.push({
+					index: index,
+					info: additionalInfo
+				});
 				this.$.pages.selected = index;
 			},
 			goBack: function() {
@@ -56,7 +62,9 @@
 				this.entryAnimation = "slide-from-left-animation";
 				this.exitAnimation = "slide-right-animation";
 				this.history.pop();
-				this.$.pages.selected = this.history[this.history.length - 1];
+				var historyEntry = this.history[this.history.length - 1];
+				this.contextualActions(historyEntry.index, historyEntry.info);
+				this.$.pages.selected = historyEntry.index;
 			},
 			animationDone: function() {
 				if (this.$.pages.selected === 1) {
