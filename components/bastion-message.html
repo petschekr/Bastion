@@ -25,6 +25,7 @@
 		#actions paper-button {
 			text-transform: none;
 			font-weight: normal !important;
+			margin-top: 5px;
 		}
 		#actions paper-button ::content paper-material {
 			font-weight: normal !important;
@@ -111,11 +112,20 @@
 		</div>
 		
 		<div id="actions">
+			<paper-radio-group selected="copy" id="output-action">
+				<paper-radio-button name="copy">Copy text output to clipboard</paper-radio-button>
+				<paper-radio-button name="ascii">Save text output to file</paper-radio-button>
+				<paper-radio-button name="raw">Save binary output to file</paper-radio-button>
+			</paper-radio-group>
+			<br />
 			<paper-button primary on-tap="encrypt" disabled>[[primaryMessage]]</paper-button>
 			<paper-button danger on-tap="cancel">Cancel</paper-button>
 		</div>
 
 		<paper-toast id="message-toast" text="Something went wrong"></paper-toast>
+		<input type="file" nwsaveas accept=".asc" id="save-ascii" style="display:none;" />
+		<input type="file" nwsaveas accept=".gpg" id="save-raw-encrypt" style="display:none;" />
+		<input type="file" nwsaveas accept=".sig" id="save-raw-signature" style="display:none;" />
 	</template>
 	
 	<script>
@@ -389,11 +399,45 @@
 					});
 				}
 				
+				var outputAction = this.$["output-action"];
+				var showMessage = this.showMessage.bind(this);
 				function finishEncryption() {
 					kbpgp.box(params, function(err, resultString, resultBuffer) {
 						// Reenable button
 						setEncrypting(false);
-						console.log(resultString);
+						if (outputAction.selected === "copy") {
+							// Copy output string to clipboard
+							gui.Clipboard.get().set(resultString);
+							showMessage("Text output copied to clipboard.");
+						}
+						var chooser;
+						if (outputAction.selected === "ascii") {
+							// Save output string to file (.asc)
+							chooser = document.getElementById("save-ascii");
+							chooser.onchange = function() {
+								fs.writeFileSync(chooser.value, resultString, {"encoding": "utf8"});
+								showMessage("Text output saved to file.");
+								
+								chooser.value = "";
+							};
+							chooser.click();
+						}
+						if (outputAction.selected === "raw") {
+							// Save output buffer to file (.gpg / .pgp / .sig)
+							if (params.encrypt_for) {
+								chooser = document.getElementById("save-raw-encrypt");
+							}
+							else {
+								chooser = document.getElementById("save-raw-signature");
+							}
+							chooser.onchange = function() {
+								fs.writeFileSync(chooser.value, resultBuffer);
+								showMessage("Binary output saved to file.");
+								
+								chooser.value = "";
+							};
+							chooser.click();
+						}
 					});
 				}
 			}
