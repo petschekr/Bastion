@@ -19,14 +19,23 @@
 			border-bottom: 1px solid rgb(203, 203, 203);
 			height: 32px;
 		}
+		paper-item small {
+			position: relative;
+			top: -1px;
+		}
 	</style>
 	<template>
 		<h1>Your keys</h1>
 		<template is="dom-repeat" items="{{keys.owned}}">
 			<paper-item>
 				<paper-item-body two-line on-tap="itemClick">
-					<div>{{item.info.0.username}}</div>
-					<div secondary>{{item.info.0.email}}</div>
+					<template is="dom-if" if="[[!item.info.0.comment]]">
+						<div>[[item.info.0.username]]</div>
+					</template>
+					<template is="dom-if" if="[[item.info.0.comment]]">
+						<div><span>[[item.info.0.username]]</span><small>&nbsp;(<span>[[item.info.0.comment]]</span>)</small></div>
+					</template>
+					<div secondary>[[item.info.0.email]]</div>
 					<paper-ripple></paper-ripple>
 				</paper-item-body>
 				<paper-icon-button icon="create" on-tap="useKey" id="[[item._id]]"></paper-icon-button>
@@ -43,8 +52,13 @@
 		<template is="dom-repeat" items="{{keys.contacts}}">
 			<paper-item>
 				<paper-item-body two-line on-tap="itemClick">
-					<div>{{item.info.0.username}}</div>
-					<div secondary>{{item.info.0.email}}</div>
+					<template is="dom-if" if="[[!item.info.0.comment]]">
+						<div>[[item.info.0.username]]</div>
+					</template>
+					<template is="dom-if" if="[[item.info.0.comment]]">
+						<div><span>[[item.info.0.username]]</span><small>&nbsp;(<span>[[item.info.0.comment]]</span>)</small></div>
+					</template>
+					<div secondary>[[item.info.0.email]]</div>
 					<paper-ripple></paper-ripple>
 				</paper-item-body>
 				<paper-icon-button icon="send" on-tap="useKey" id="[[item._id]]"></paper-icon-button>
