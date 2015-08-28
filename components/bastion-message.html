@@ -79,7 +79,7 @@
 							</template>
 							<div secondary>[[item.info.0.email]]</div>
 						</paper-item-body>
-						<paper-icon-button icon="add" on-tap="addRecipient" id="[[item._id]]"></paper-icon-button>
+						<paper-icon-button icon="add" on-tap="addRecipient" itemid="[[item._id]]"></paper-icon-button>
 					</paper-item>
 				</template>
 			</div>
@@ -101,7 +101,7 @@
 							</template>
 							<div secondary>[[item.info.0.email]]</div>
 						</paper-item-body>
-						<paper-icon-button icon="add" on-tap="addSigner" id="[[item._id]]" exclusive></paper-icon-button>
+						<paper-icon-button icon="add" on-tap="addSigner" itemid="[[item._id]]" exclusive></paper-icon-button>
 					</paper-item>
 				</template>
 			</div>
@@ -142,10 +142,42 @@
 					}
 				});
 			},
-			refresh: function() {
+			refresh: function(useKeyID) {
 				this.keys = window.keys;
 				this.recipientSearchKeys = this.keys.contacts.concat(this.keys.owned);
 				this.signingSearchKeys = this.keys.owned.concat();
+				
+				setTimeout((function() {
+					for (var i = 0; i < this.recipientSearchKeys.length; i++) {
+						var key = this.recipientSearchKeys[i];
+						if (key._id === useKeyID) {
+							break;
+						}
+					}
+					
+					var icons;
+					if (key.owned) {
+						// Add as signer (but not as recipient)
+						this.signingKey = key;
+						icons = document.querySelector("bastion-message").querySelectorAll("paper-icon-button[icon='add'][exclusive]");
+						for (var i = 0; i < icons.length; i++) {
+							if (icons[i].itemid === useKeyID) {
+								icons[i].icon = "check";
+							}
+						}
+					}
+					else {
+						// Add as recipient
+						this.encryptionKeys.push(key);
+						icons = document.querySelector("bastion-message").querySelectorAll("paper-icon-button[icon='add']:not([exclusive])");
+						for (var i = 0; i < icons.length; i++) {
+							if (icons[i].itemid === useKeyID) {
+								icons[i].icon = "check";
+							}
+						}
+					}
+					this.computeAction();
+				}).bind(this), 100);
 			},
 			goBack: function() {
 				window.bastionWrapper.goBack();
@@ -166,9 +198,10 @@
 				this.encryptionKeys = [];
 				this.signingKey = null;
 				this.toggleAttribute("disabled", true, this.$$("paper-button[primary]"));
-				var icons = this.querySelectorAll("paper-icon-button[id]");
+				var icons = this.querySelectorAll("paper-icon-button");
 				for (var i = 0; i < icons.length; i++) {
-					icons[i].icon = "add";
+					if (icons[i].itemid)
+						icons[i].icon = "add";
 				}
 				if (this.encrypting) {
 					this.asp.canceler().cancel();
@@ -227,7 +260,7 @@
 				this.signingSearchKeys = results;
 			},
 			addRecipient: function (event) {
-				var id = event.currentTarget.id;
+				var id = event.currentTarget.itemid;
 				if (event.currentTarget.icon === "add") {
 					// Add recipient
 					for (var i = 0; i < this.recipientSearchKeys.length; i++) {
@@ -252,7 +285,7 @@
 				this.computeAction();
 			},
 			addSigner: function (event) {
-				var id = event.currentTarget.id;
+				var id = event.currentTarget.itemid;
 				this.signingKey = null;
 				if (event.currentTarget.icon === "add") {
 					// Add signing key
