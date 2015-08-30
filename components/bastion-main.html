@@ -73,11 +73,20 @@
 			margin-top: 20px;
 			color: #757575;
 		}
+		.divider {
+			height: 65%;
+			width: 0px;
+			border-left: 1px solid rgba(255, 255, 255, 0.25);
+			margin: 5px;
+		}
 	</style>
 	<template>
 		<paper-toolbar>
 			<paper-icon-button icon="settings" style="margin-right: 10px;"></paper-icon-button>
 			<span class="title">Bastion</span>
+			<paper-button on-tap="goToEncryption">Encrypt / Sign</paper-button>
+			<paper-button on-tap="goToDecryption">Decrypt / Verify</paper-button>
+			<span class="divider"></span>
 			<paper-icon-button icon="cloud-download"></paper-icon-button>
 			<paper-icon-button icon="input" on-tap="showAddKey"></paper-icon-button>
 			<paper-icon-button icon="add" on-tap="showGenerateKey"></paper-icon-button>
@@ -171,6 +180,12 @@
 					// Tell the key-list element that we've initialized the DB and loaded available keys
 					this.$["key-list"].mainInitialized();
 				}).bind(this));
+			},
+			goToEncryption: function() {
+				window.bastionWrapper.goToPage(2);
+			},
+			goToDecryption: function() {
+				
 			},
 			showAddKey: function() {
 				this.$["add-key"].open();
