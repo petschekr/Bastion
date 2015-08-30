@@ -197,10 +197,8 @@
 				this.$.recipientInput.value = "";
 				this.$.signerInput.value = "";
 				this.$.message.value = "";
-				this.primaryMessage = "Sign or encrypt";
 				this.encryptionKeys = [];
 				this.signingKey = null;
-				this.toggleAttribute("disabled", true, this.$$("paper-button[primary]"));
 				var icons = this.querySelectorAll("paper-icon-button");
 				for (var i = 0; i < icons.length; i++) {
 					if (icons[i].itemid)
