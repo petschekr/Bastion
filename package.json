@@ -2,16 +2,7 @@
   "name": "bastion",
   "version": "0.0.1",
   "description": "Cross-platform OpenPGP client with support for Keybase.io proofs",
-  "main": "index.html",
-  "window": {
-    "title": "Bastion",
-    "toolbar": true,
-    "width": 1000,
-    "height": 660,
-    "min_width": 800,
-    "min_height": 400,
-    "position": "center"
-  },
+  "main": "main.js",
   "scripts": {
     "build": "echo \"Building not configured yet\" && exit 1",
     "test": "echo \"Error: no test specified\" && exit 1"
