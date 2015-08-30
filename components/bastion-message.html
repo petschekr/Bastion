@@ -147,6 +147,9 @@
 				this.recipientSearchKeys = this.keys.contacts.concat(this.keys.owned);
 				this.signingSearchKeys = this.keys.owned.concat();
 				
+				if (!useKeyID)
+					return;
+				
 				setTimeout((function() {
 					for (var i = 0; i < this.recipientSearchKeys.length; i++) {
 						var key = this.recipientSearchKeys[i];
@@ -207,6 +210,7 @@
 					this.asp.canceler().cancel();
 					this.encrypting = false;
 				}
+				this.computeAction();
 				this.goBack();
 			},
 			computeAction() {
