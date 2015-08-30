@@ -1,7 +1,7 @@
 {
   "name": "bastion",
   "version": "0.0.1",
-  "description": "Cross-platform OpenPGP client with support for Keybase.io",
+  "description": "Cross-platform OpenPGP client with support for Keybase.io proofs",
   "main": "index.html",
   "window": {
     "title": "Bastion",

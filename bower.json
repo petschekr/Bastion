@@ -5,7 +5,7 @@
   "authors": [
     "Ryan Petschek <petschekr@gmail.com>"
   ],
-  "description": "Cross-platform OpenPGP client with support for Keybase.io",
+  "description": "Cross-platform OpenPGP client with support for Keybase.io proofs",
   "main": "index.html",
   "moduleType": [
     "node"
