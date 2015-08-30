@@ -47,6 +47,16 @@
 		paper-item {
 			padding: 0;
 		}
+		paper-item > span {
+			color: #757575;
+			font-family: 'Roboto', 'Noto', sans-serif;
+			-webkit-font-smoothing: antialiased;
+			font-size: 14px;
+			font-weight: 400;
+			line-height: 24px;
+			position: relative;
+			top: 1px;
+		}
 		paper-item small {
 			position: relative;
 			top: -1px;
@@ -79,6 +89,9 @@
 							</template>
 							<div secondary>[[item.info.0.email]]</div>
 						</paper-item-body>
+						<template is="dom-if" if="[[item.owned]]">
+							<span>Your key</span>
+						</template>
 						<paper-icon-button icon="add" on-tap="addRecipient" itemid="[[item._id]]"></paper-icon-button>
 					</paper-item>
 				</template>
