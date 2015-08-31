@@ -136,9 +136,6 @@
 		</div>
 
 		<paper-toast id="message-toast" text="Something went wrong"></paper-toast>
-		<input type="file" nwsaveas accept=".asc" id="save-ascii" style="display:none;" />
-		<input type="file" nwsaveas accept=".gpg" id="save-raw-encrypt" style="display:none;" />
-		<input type="file" nwsaveas accept=".sig" id="save-raw-signature" style="display:none;" />
 	</template>
 	
 	<script>
@@ -458,33 +455,43 @@
 							clipboard.writeText(resultString);
 							showMessage("Text output copied to clipboard.");
 						}
-						var chooser;
 						if (outputAction.selected === "ascii") {
 							// Save output string to file (.asc)
-							chooser = document.getElementById("save-ascii");
-							chooser.onchange = function() {
-								fs.writeFileSync(chooser.value, resultString, {"encoding": "utf8"});
+							ipc.send("save", {
+								"title": "Save text output",
+								"filters": [
+									{name: "ASCII armor", extensions: ["asc", "txt"]},
+									{name: "All files", extensions: ["*"]}
+								]
+							});
+							ipc.once("save-response", function (file) {
+								fs.writeFileSync(file, resultString, {"encoding": "utf8"});
 								showMessage("Text output saved to file.");
-								
-								chooser.value = "";
-							};
-							chooser.click();
+							});
 						}
 						if (outputAction.selected === "raw") {
 							// Save output buffer to file (.gpg / .pgp / .sig)
+							var filters;
 							if (params.encrypt_for) {
-								chooser = document.getElementById("save-raw-encrypt");
+								filters = [
+									{name: "Binary output", extensions: ["gpg", "pgp"]},
+									{name: "All files", extensions: ["*"]}
+								];
 							}
 							else {
-								chooser = document.getElementById("save-raw-signature");
+								filters = [
+									{name: "Binary signature", extensions: ["sig", "gpg", "pgp"]},
+									{name: "All files", extensions: ["*"]}
+								]
 							}
-							chooser.onchange = function() {
-								fs.writeFileSync(chooser.value, resultBuffer);
+							ipc.send("save", {
+								"title": "Save binary output",
+								"filters": filters 
+							});
+							ipc.once("save-response", function (file) {
+								fs.writeFileSync(file, resultBuffer);
 								showMessage("Binary output saved to file.");
-								
-								chooser.value = "";
-							};
-							chooser.click();
+							});
 						}
 					});
 				}

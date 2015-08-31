@@ -101,7 +101,6 @@
 			<div id="key-area">
 				<paper-textarea label="Public or private key" id="added-key"></paper-textarea>
 				<paper-icon-button icon="file-upload" on-tap="showUploadKey"></paper-icon-button>
-				<input type="file" style="display:none;" id="add-key-uploader" accept=".asc,.txt" />
 			</div>
 			<div class="buttons">
 				<paper-button dialog-dismiss>Cancel</paper-button>
@@ -195,10 +194,15 @@
 				this.$["generate-key"].open();
 			},
 			showUploadKey: function() {
-				var chooser = this.$["add-key-uploader"];
-				chooser.onchange = (function() {
-					fs.readFile(chooser.value, "utf8", (function (err, keyData) {
-						chooser.value = "";
+				ipc.send("open", {
+					"title": "Import key",
+					"filters": [
+						{name: "PGP keys", extensions: ["asc", "txt"]},
+						{name: "All files", extensions: ["*"]}
+					]
+				});
+				ipc.once("open-response", (function (file) {
+					fs.readFile(file[0], "utf8", (function (err, keyData) {
 						if (err) {
 							console.error(err);
 							swal("Oops!", "An error occurred while reading the selected file.", "error");
@@ -207,8 +211,7 @@
 						this.importKey(keyData);
 						this.$["add-key"].close();
 					}).bind(this));
-				}).bind(this);
-				chooser.click();
+				}).bind(this));
 			},
 			addKey: function() {
 				var key = this.$["added-key"].value;
