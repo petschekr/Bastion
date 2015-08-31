@@ -469,7 +469,7 @@
 			},
 			copyFingerprint: function (element) {
 				var fingerprint = element.currentTarget.parentElement.querySelector("span").textContent;
-				gui.Clipboard.get().set(fingerprint);
+				clipboard.writeText(fingerprint);
 				this.showMessage("Fingerprint copied to clipboard.")
 			}
 		});

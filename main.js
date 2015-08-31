@@ -1,4 +1,6 @@
 var app = require("app");
+var dialog = require("dialog");
+var ipc = require("ipc");
 var BrowserWindow = require("browser-window");
 
 var mainWindow = null;
@@ -7,6 +9,10 @@ app.on("window-all-closed", function() {
 	if (process.platform != 'darwin') {
 		app.quit();
 	}
+});
+
+ipc.on("database", function(event) {
+	event.returnValue = app.getPath("userData");
 });
 
 app.on("ready", function() {

@@ -455,7 +455,7 @@
 						setEncrypting(false);
 						if (outputAction.selected === "copy") {
 							// Copy output string to clipboard
-							gui.Clipboard.get().set(resultString);
+							clipboard.writeText(resultString);
 							showMessage("Text output copied to clipboard.");
 						}
 						var chooser;
