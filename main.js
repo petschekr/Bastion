@@ -25,6 +25,7 @@ app.on("ready", function() {
 		"title": "Bastion"
 	});
 	mainWindow.loadUrl("file://" + __dirname + "/index.html");
+	mainWindow.setMenu(null);
 
 	mainWindow.openDevTools();
 
