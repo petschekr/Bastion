@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+
+		<script src="bower_components/webcomponentsjs/webcomponents-lite.min.js"></script>
+		<link rel="import" href="components/bastion-wrapper.html" />
+		<style>
+			body {
+				font-family: "Roboto";
+				overflow-x: hidden;
+				overflow-y: scroll;
+				background-color: rgb(249, 249, 249);
+				margin-top: 0px;
+				/*margin-top: 64px;*/
+			}
+			paper-toolbar {
+				position: fixed;
+				width: 100%;
+				top: 8px;
+				z-index: 1000;
+				-webkit-user-select: none;
+			}
+		</style>
+	</head>
+	<body unresolved>
+		<bastion-wrapper></bastion-wrapper>
+	</body>
+</html>
