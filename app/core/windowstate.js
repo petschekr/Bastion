@@ -2,11 +2,12 @@
 
 var app = require("app");
 var fs = require("fs");
+var path = require("path");
 
 module.exports = function (name, defaults) {
 
     var userDataDir = app.getPath("userData");
-    var stateStoreFile = `window-state-${name}.json`;
+    var stateStoreFile = path.join(userDataDir, `window-state-${name}.json`);
 	
 	var state;
 	try {
