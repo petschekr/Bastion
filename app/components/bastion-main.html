@@ -91,7 +91,9 @@
 			<paper-icon-button icon="input" on-tap="showAddKey"></paper-icon-button>
 			<paper-icon-button icon="add" on-tap="showGenerateKey"></paper-icon-button>
 		</paper-toolbar>
-		<key-list id="key-list"></key-list>
+		<div class="content">
+			<key-list id="key-list"></key-list>
+		</div>
 		<paper-dialog id="add-key" modal>
 			<p>
 				Enter a public or private key in the text area below to import it.

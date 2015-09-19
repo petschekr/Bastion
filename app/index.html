@@ -8,18 +8,18 @@
 		<style>
 			body {
 				font-family: "Roboto";
-				overflow-x: hidden;
-				overflow-y: scroll;
+				overflow: hidden;
 				background-color: rgb(249, 249, 249);
-				margin-top: 0px;
-				/*margin-top: 64px;*/
 			}
 			paper-toolbar {
-				position: fixed;
-				width: 100%;
-				top: 8px;
-				z-index: 1000;
 				-webkit-user-select: none;
+			}
+			div.content {
+				overflow-x: hidden;
+				overflow-y: scroll;
+				margin-left: -8px;
+    			margin-right: -8px;
+				height: calc(100vh - 64px);
 			}
 		</style>
 	</head>

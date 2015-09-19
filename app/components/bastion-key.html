@@ -71,6 +71,12 @@
 			color: var(--paper-red-500);
 			--paper-button-flat-focus-color: var(--paper-red-50);
 		}
+		/* Visual fixes for displaced content block */
+		div.content {
+			margin-top: -38px;
+    		padding-top: 38px;
+    		height: calc(100vh - 64px - 38px);
+		}
 	</style>
 	
 	<template>
@@ -81,110 +87,112 @@
 		<div style="display:flex;justify-content:center;align-items:center;">
 			<paper-spinner alt="Loading key" active></paper-spinner>
 		</div>
-		<div class="fadein hidden" id="actions">
-			<template is="dom-if" if="{{selectedKeyInfo.owned}}">
-				<paper-button primary on-tap="useKey"><iron-icon icon="create"></iron-icon>&nbsp;<span>Sign message</span></paper-button>
-			</template>
-			<template is="dom-if" if="{{!selectedKeyInfo.owned}}">
-				<paper-button primary on-tap="useKey"><iron-icon icon="send"></iron-icon>&nbsp;<span>Encrypt message</span></paper-button>
-			</template>
-			<paper-button danger on-tap="deleteKey"><iron-icon icon="delete"></iron-icon>&nbsp;<span>Delete key</span></paper-button>
-		</div>
-		<!-- Primary key info -->
-		<div class="list fadein hidden">
-			<paper-icon-item>
-				<iron-icon icon="account-box" item-icon></iron-icon>
-				<paper-item-body two-line>
-					<div secondary>Username</div>
-					<div>{{selectedKeyInfo.userids.0.username}}</div>
-				</paper-item-body>
-			</paper-icon-item>
-			<template is="dom-if" if="{{selectedKeyInfo.userids.0.comment}}">
+		<div class="content">
+			<div class="fadein hidden" id="actions">
+				<template is="dom-if" if="{{selectedKeyInfo.owned}}">
+					<paper-button primary on-tap="useKey"><iron-icon icon="create"></iron-icon>&nbsp;<span>Sign message</span></paper-button>
+				</template>
+				<template is="dom-if" if="{{!selectedKeyInfo.owned}}">
+					<paper-button primary on-tap="useKey"><iron-icon icon="send"></iron-icon>&nbsp;<span>Encrypt message</span></paper-button>
+				</template>
+				<paper-button danger on-tap="deleteKey"><iron-icon icon="delete"></iron-icon>&nbsp;<span>Delete key</span></paper-button>
+			</div>
+			<!-- Primary key info -->
+			<div class="list fadein hidden">
 				<paper-icon-item>
-					<iron-icon icon="communication:chat-bubble" item-icon></iron-icon>
+					<iron-icon icon="account-box" item-icon></iron-icon>
 					<paper-item-body two-line>
-						<div secondary>Comment</div>
-						<div>{{selectedKeyInfo.userids.0.comment}}</div>
+						<div secondary>Username</div>
+						<div>{{selectedKeyInfo.userids.0.username}}</div>
 					</paper-item-body>
 				</paper-icon-item>
-			</template>
-			<paper-icon-item>
-				<iron-icon icon="communication:email" item-icon></iron-icon>
-				<paper-item-body two-line>
-					<div secondary>Email</div>
-					<div>{{selectedKeyInfo.userids.0.email}}</div>
-				</paper-item-body>
-				<a href="{{selectedKeyInfo.userids.0.mailto}}" style="display:none;"></a>
-				<paper-icon-button icon="launch" on-tap="openEmail"></paper-icon-button>
-			</paper-icon-item>
-			<paper-icon-item>
-				<iron-icon icon="event" item-icon></iron-icon>
-				<paper-item-body two-line>
-					<div secondary>Created on / Expires on</div>
-					<div><span>{{selectedKeyInfo.date.generation.formatted}}</span>&nbsp;/&nbsp;<span>{{selectedKeyInfo.date.expiry.formatted}}</span></div>
-				</paper-item-body>
-			</paper-icon-item>
-			<paper-icon-item>
-				<iron-icon icon="info" item-icon></iron-icon>
-				<paper-item-body two-line>
-					<div secondary>Key ID</div>
-					<div>{{selectedKeyInfo.key.id}}</div>
-				</paper-item-body>
-			</paper-icon-item>
-			<paper-icon-item>
-				<iron-icon icon="gesture" item-icon></iron-icon>
-				<paper-item-body two-line>
-					<div secondary>Key Fingerprint</div>
-					<div>{{selectedKeyInfo.fingerprint.pretty}}</div>
-				</paper-item-body>
-				<span style="display:none;">{{selectedKeyInfo.fingerprint.pretty}}</span>
-				<paper-icon-button icon="content-copy" on-tap="copyFingerprint"></paper-icon-button>
-			</paper-icon-item>
-			<paper-icon-item>
-				<iron-icon icon="extension" item-icon></iron-icon>
-				<paper-item-body two-line>
-					<div secondary>Key Capabilities</div>
-					<div>{{selectedKeyInfo.key.capabilities}}</div>
-				</paper-item-body>
-			</paper-icon-item>
-			<paper-icon-item>
-				<iron-icon icon="communication:vpn-key" item-icon></iron-icon>
-				<paper-item-body two-line>
-					<div secondary>Key Type</div>
-					<div><span>{{selectedKeyInfo.key.type}}</span>&nbsp;<span>{{selectedKeyInfo.key.size}}</span>&nbsp;bit</div>
-				</paper-item-body>
-			</paper-icon-item>
-		</div>
-		<!-- Subkeys -->
-		<div class="fadein hidden" id="subkeys">
-			<template is="dom-repeat" items="{{selectedKeyInfo.key.subkeys}}">
-				<div class="list">
+				<template is="dom-if" if="{{selectedKeyInfo.userids.0.comment}}">
 					<paper-icon-item>
-						<iron-icon icon="info" item-icon></iron-icon>Subkey #<span>{{item.number}}</span>
-					</paper-icon-item>
-					<paper-icon-item>
-						<iron-icon icon="event" item-icon></iron-icon>
+						<iron-icon icon="communication:chat-bubble" item-icon></iron-icon>
 						<paper-item-body two-line>
-							<div secondary>Created on / Expires on</div>
-							<div><span>{{item.date.generation.formatted}}</span>&nbsp;/&nbsp;<span>{{item.date.expiry.formatted}}</span></div>
+							<div secondary>Comment</div>
+							<div>{{selectedKeyInfo.userids.0.comment}}</div>
 						</paper-item-body>
 					</paper-icon-item>
-					<paper-icon-item>
-						<iron-icon icon="extension" item-icon></iron-icon>
-						<paper-item-body two-line>
-							<div secondary>Key Capabilities</div>
-							<div>{{item.capabilities}}</div>
-						</paper-item-body>
-					</paper-icon-item>
-					<paper-icon-item>
-						<iron-icon icon="communication:vpn-key" item-icon></iron-icon>
-						<paper-item-body two-line>
-							<div secondary>Key Type</div>
-							<div><span>{{item.type}}</span>&nbsp;<span>{{item.size}}</span>&nbsp;bit</div>
-						</paper-item-body>
-					</paper-icon-item>
-				</div>
-			</template>
+				</template>
+				<paper-icon-item>
+					<iron-icon icon="communication:email" item-icon></iron-icon>
+					<paper-item-body two-line>
+						<div secondary>Email</div>
+						<div>{{selectedKeyInfo.userids.0.email}}</div>
+					</paper-item-body>
+					<a href="{{selectedKeyInfo.userids.0.mailto}}" style="display:none;"></a>
+					<paper-icon-button icon="launch" on-tap="openEmail"></paper-icon-button>
+				</paper-icon-item>
+				<paper-icon-item>
+					<iron-icon icon="event" item-icon></iron-icon>
+					<paper-item-body two-line>
+						<div secondary>Created on / Expires on</div>
+						<div><span>{{selectedKeyInfo.date.generation.formatted}}</span>&nbsp;/&nbsp;<span>{{selectedKeyInfo.date.expiry.formatted}}</span></div>
+					</paper-item-body>
+				</paper-icon-item>
+				<paper-icon-item>
+					<iron-icon icon="info" item-icon></iron-icon>
+					<paper-item-body two-line>
+						<div secondary>Key ID</div>
+						<div>{{selectedKeyInfo.key.id}}</div>
+					</paper-item-body>
+				</paper-icon-item>
+				<paper-icon-item>
+					<iron-icon icon="gesture" item-icon></iron-icon>
+					<paper-item-body two-line>
+						<div secondary>Key Fingerprint</div>
+						<div>{{selectedKeyInfo.fingerprint.pretty}}</div>
+					</paper-item-body>
+					<span style="display:none;">{{selectedKeyInfo.fingerprint.pretty}}</span>
+					<paper-icon-button icon="content-copy" on-tap="copyFingerprint"></paper-icon-button>
+				</paper-icon-item>
+				<paper-icon-item>
+					<iron-icon icon="extension" item-icon></iron-icon>
+					<paper-item-body two-line>
+						<div secondary>Key Capabilities</div>
+						<div>{{selectedKeyInfo.key.capabilities}}</div>
+					</paper-item-body>
+				</paper-icon-item>
+				<paper-icon-item>
+					<iron-icon icon="communication:vpn-key" item-icon></iron-icon>
+					<paper-item-body two-line>
+						<div secondary>Key Type</div>
+						<div><span>{{selectedKeyInfo.key.type}}</span>&nbsp;<span>{{selectedKeyInfo.key.size}}</span>&nbsp;bit</div>
+					</paper-item-body>
+				</paper-icon-item>
+			</div>
+			<!-- Subkeys -->
+			<div class="fadein hidden" id="subkeys">
+				<template is="dom-repeat" items="{{selectedKeyInfo.key.subkeys}}">
+					<div class="list">
+						<paper-icon-item>
+							<iron-icon icon="info" item-icon></iron-icon>Subkey #<span>{{item.number}}</span>
+						</paper-icon-item>
+						<paper-icon-item>
+							<iron-icon icon="event" item-icon></iron-icon>
+							<paper-item-body two-line>
+								<div secondary>Created on / Expires on</div>
+								<div><span>{{item.date.generation.formatted}}</span>&nbsp;/&nbsp;<span>{{item.date.expiry.formatted}}</span></div>
+							</paper-item-body>
+						</paper-icon-item>
+						<paper-icon-item>
+							<iron-icon icon="extension" item-icon></iron-icon>
+							<paper-item-body two-line>
+								<div secondary>Key Capabilities</div>
+								<div>{{item.capabilities}}</div>
+							</paper-item-body>
+						</paper-icon-item>
+						<paper-icon-item>
+							<iron-icon icon="communication:vpn-key" item-icon></iron-icon>
+							<paper-item-body two-line>
+								<div secondary>Key Type</div>
+								<div><span>{{item.type}}</span>&nbsp;<span>{{item.size}}</span>&nbsp;bit</div>
+							</paper-item-body>
+						</paper-icon-item>
+					</div>
+				</template>
+			</div>
 		</div>
 		<paper-toast id="message-toast" text="Something went wrong"></paper-toast>
 	</template>
@@ -198,6 +206,12 @@
 			goBack: function() {
 				this.fadeIn(true);
 				this.keyTitle = "Key";
+				this.selectedKeyInfo = null;
+				// Scroll to top of content div after the animation
+				var divToScroll = this.$$("div.content");
+				setTimeout(function () {
+					divToScroll.scrollTop = 0;
+				}, 500);
 				window.bastionWrapper.goBack();
 			},
 			fadeIn: function (hidden) {
@@ -460,6 +474,7 @@
 						}
 						var id = docs[0]._id;
 						this.fadeIn(true);
+						this.selectedKeyInfo = null;
 						window.bastionWrapper.goToPage(2, id);
 					}).bind(this));
 				}).bind(this));

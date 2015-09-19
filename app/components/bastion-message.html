@@ -73,66 +73,68 @@
 			<span class="title">[[primaryMessage]]</span>
 		</paper-toolbar>
 		
-		<div class="list">
-			<h4>Recipient(s)</h4>
-			<paper-input id="recipientInput" label="Search contacts and your keys" on-input="searchRecipient"></paper-input>
-			
-			<div class="search-results">
-				<template is="dom-repeat" items="[[recipientSearchKeys]]">
-					<paper-item>
-						<paper-item-body two-line on-tap="itemClick">
-							<template is="dom-if" if="[[!item.info.0.comment]]">
-								<div>[[item.info.0.username]]</div>
+		<div class="content">
+			<div class="list">
+				<h4>Recipient(s)</h4>
+				<paper-input id="recipientInput" label="Search contacts and your keys" on-input="searchRecipient"></paper-input>
+				
+				<div class="search-results">
+					<template is="dom-repeat" items="[[recipientSearchKeys]]">
+						<paper-item>
+							<paper-item-body two-line on-tap="itemClick">
+								<template is="dom-if" if="[[!item.info.0.comment]]">
+									<div>[[item.info.0.username]]</div>
+								</template>
+								<template is="dom-if" if="[[item.info.0.comment]]">
+									<div><span>[[item.info.0.username]]</span><small>&nbsp;(<span>[[item.info.0.comment]]</span>)</small></div>
+								</template>
+								<div secondary>[[item.info.0.email]]</div>
+							</paper-item-body>
+							<template is="dom-if" if="[[item.owned]]">
+								<span>Your key</span>
 							</template>
-							<template is="dom-if" if="[[item.info.0.comment]]">
-								<div><span>[[item.info.0.username]]</span><small>&nbsp;(<span>[[item.info.0.comment]]</span>)</small></div>
-							</template>
-							<div secondary>[[item.info.0.email]]</div>
-						</paper-item-body>
-						<template is="dom-if" if="[[item.owned]]">
-							<span>Your key</span>
-						</template>
-						<paper-icon-button icon="add" on-tap="addRecipient" itemid="[[item._id]]"></paper-icon-button>
-					</paper-item>
-				</template>
+							<paper-icon-button icon="add" on-tap="addRecipient" itemid="[[item._id]]"></paper-icon-button>
+						</paper-item>
+					</template>
+				</div>
 			</div>
-		</div>
-		
-		<div class="list">
-			<h4>Signing key</h4>
-			<paper-input id="signerInput" label="Search your keys" on-input="searchSigner"></paper-input>
 			
-			<div class="search-results">
-				<template is="dom-repeat" items="[[signingSearchKeys]]">
-					<paper-item>
-						<paper-item-body two-line on-tap="itemClick">
-							<template is="dom-if" if="[[!item.info.0.comment]]">
-								<div>[[item.info.0.username]]</div>
-							</template>
-							<template is="dom-if" if="[[item.info.0.comment]]">
-								<div><span>[[item.info.0.username]]</span><small>&nbsp;(<span>[[item.info.0.comment]]</span>)</small></div>
-							</template>
-							<div secondary>[[item.info.0.email]]</div>
-						</paper-item-body>
-						<paper-icon-button icon="add" on-tap="addSigner" itemid="[[item._id]]" exclusive></paper-icon-button>
-					</paper-item>
-				</template>
+			<div class="list">
+				<h4>Signing key</h4>
+				<paper-input id="signerInput" label="Search your keys" on-input="searchSigner"></paper-input>
+				
+				<div class="search-results">
+					<template is="dom-repeat" items="[[signingSearchKeys]]">
+						<paper-item>
+							<paper-item-body two-line on-tap="itemClick">
+								<template is="dom-if" if="[[!item.info.0.comment]]">
+									<div>[[item.info.0.username]]</div>
+								</template>
+								<template is="dom-if" if="[[item.info.0.comment]]">
+									<div><span>[[item.info.0.username]]</span><small>&nbsp;(<span>[[item.info.0.comment]]</span>)</small></div>
+								</template>
+								<div secondary>[[item.info.0.email]]</div>
+							</paper-item-body>
+							<paper-icon-button icon="add" on-tap="addSigner" itemid="[[item._id]]" exclusive></paper-icon-button>
+						</paper-item>
+					</template>
+				</div>
 			</div>
-		</div>
-		
-		<div class="list">
-			<paper-textarea id="message" label="Your message" on-input="computeAction"></paper-textarea>
-		</div>
-		
-		<div id="actions">
-			<paper-radio-group selected="copy" id="output-action">
-				<paper-radio-button name="copy">Copy text output to clipboard</paper-radio-button>
-				<paper-radio-button name="ascii">Save text output to file</paper-radio-button>
-				<paper-radio-button name="raw">Save binary output to file</paper-radio-button>
-			</paper-radio-group>
-			<br />
-			<paper-button primary on-tap="encrypt" disabled>[[primaryMessage]]</paper-button>
-			<paper-button danger on-tap="cancel">Cancel</paper-button>
+			
+			<div class="list">
+				<paper-textarea id="message" label="Your message" on-input="computeAction"></paper-textarea>
+			</div>
+			
+			<div id="actions">
+				<paper-radio-group selected="copy" id="output-action">
+					<paper-radio-button name="copy">Copy text output to clipboard</paper-radio-button>
+					<paper-radio-button name="ascii">Save text output to file</paper-radio-button>
+					<paper-radio-button name="raw">Save binary output to file</paper-radio-button>
+				</paper-radio-group>
+				<br />
+				<paper-button primary on-tap="encrypt" disabled>[[primaryMessage]]</paper-button>
+				<paper-button danger on-tap="cancel">Cancel</paper-button>
+			</div>
 		</div>
 
 		<paper-toast id="message-toast" text="Something went wrong"></paper-toast>
@@ -192,9 +194,6 @@
 					this.computeAction();
 				}).bind(this), 100);
 			},
-			goBack: function() {
-				window.bastionWrapper.goBack();
-			},
 			showMessage: function (message) {
 				this.toggleClass("recalculate", true, this.$["message-toast"]);
 				setTimeout((function() {
@@ -219,7 +218,12 @@
 					this.encrypting = false;
 				}
 				this.computeAction();
-				this.goBack();
+				// Scroll to top of content div after the animation
+				var divToScroll = this.$$("div.content");
+				setTimeout(function () {
+					divToScroll.scrollTop = 0;
+				}, 500);
+				window.bastionWrapper.goBack();
 			},
 			computeAction() {
 				if (this.encryptionKeys.length === 0 && !this.signingKey) {
