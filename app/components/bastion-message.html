@@ -1,0 +1,501 @@
+<link rel="import" href="../bower_components/polymer/polymer.html" />
+
+<dom-module id="bastion-message">
+	<style>
+		paper-toolbar {
+			background-color: #0074D9 !important;
+			/* Compensates for default 8px margin around <body> */
+			margin-top: -8px;
+			margin-left: -8px;
+			margin-right: -8px;
+		}
+		.list {
+			padding: 12px 18px;
+			background-color: white;
+			display: block;
+			margin: 24px auto;
+			margin-left: 100px;
+			margin-right: 100px;
+			@apply(--shadow-elevation-2dp);
+		}
+		#actions {
+			text-align: center;
+			margin-bottom: 24px;
+		}
+		#actions paper-button {
+			text-transform: none;
+			font-weight: normal !important;
+			margin-top: 5px;
+		}
+		#actions paper-button ::content paper-material {
+			font-weight: normal !important;
+		}
+		#actions paper-button[primary] {
+			color: #0074D9;
+		}
+		#actions paper-button[disabled] {
+			color: #a8a8a8;
+		}
+		#actions paper-button[danger] {
+			color: var(--paper-red-500);
+			--paper-button-flat-focus-color: var(--paper-red-50);
+		}
+		h4 {
+			margin-bottom: 0;
+			margin-top: 10px;
+		}
+		paper-item {
+			padding: 0;
+		}
+		paper-item > span {
+			color: #757575;
+			font-family: 'Roboto', 'Noto', sans-serif;
+			-webkit-font-smoothing: antialiased;
+			font-size: 14px;
+			font-weight: 400;
+			line-height: 24px;
+			position: relative;
+			top: 1px;
+		}
+		paper-item small {
+			position: relative;
+			top: -1px;
+		}
+		.search-results {
+			overflow: auto;
+			max-height: 216px; /* 72px * 3 */
+		}
+	</style>
+	
+	<template>
+		<paper-toolbar>
+			<paper-icon-button icon="arrow-back" style="margin-right: 10px;" on-tap="cancel"></paper-icon-button>
+			<span class="title">[[primaryMessage]]</span>
+		</paper-toolbar>
+		
+		<div class="list">
+			<h4>Recipient(s)</h4>
+			<paper-input id="recipientInput" label="Search contacts and your keys" on-input="searchRecipient"></paper-input>
+			
+			<div class="search-results">
+				<template is="dom-repeat" items="[[recipientSearchKeys]]">
+					<paper-item>
+						<paper-item-body two-line on-tap="itemClick">
+							<template is="dom-if" if="[[!item.info.0.comment]]">
+								<div>[[item.info.0.username]]</div>
+							</template>
+							<template is="dom-if" if="[[item.info.0.comment]]">
+								<div><span>[[item.info.0.username]]</span><small>&nbsp;(<span>[[item.info.0.comment]]</span>)</small></div>
+							</template>
+							<div secondary>[[item.info.0.email]]</div>
+						</paper-item-body>
+						<template is="dom-if" if="[[item.owned]]">
+							<span>Your key</span>
+						</template>
+						<paper-icon-button icon="add" on-tap="addRecipient" itemid="[[item._id]]"></paper-icon-button>
+					</paper-item>
+				</template>
+			</div>
+		</div>
+		
+		<div class="list">
+			<h4>Signing key</h4>
+			<paper-input id="signerInput" label="Search your keys" on-input="searchSigner"></paper-input>
+			
+			<div class="search-results">
+				<template is="dom-repeat" items="[[signingSearchKeys]]">
+					<paper-item>
+						<paper-item-body two-line on-tap="itemClick">
+							<template is="dom-if" if="[[!item.info.0.comment]]">
+								<div>[[item.info.0.username]]</div>
+							</template>
+							<template is="dom-if" if="[[item.info.0.comment]]">
+								<div><span>[[item.info.0.username]]</span><small>&nbsp;(<span>[[item.info.0.comment]]</span>)</small></div>
+							</template>
+							<div secondary>[[item.info.0.email]]</div>
+						</paper-item-body>
+						<paper-icon-button icon="add" on-tap="addSigner" itemid="[[item._id]]" exclusive></paper-icon-button>
+					</paper-item>
+				</template>
+			</div>
+		</div>
+		
+		<div class="list">
+			<paper-textarea id="message" label="Your message" on-input="computeAction"></paper-textarea>
+		</div>
+		
+		<div id="actions">
+			<paper-radio-group selected="copy" id="output-action">
+				<paper-radio-button name="copy">Copy text output to clipboard</paper-radio-button>
+				<paper-radio-button name="ascii">Save text output to file</paper-radio-button>
+				<paper-radio-button name="raw">Save binary output to file</paper-radio-button>
+			</paper-radio-group>
+			<br />
+			<paper-button primary on-tap="encrypt" disabled>[[primaryMessage]]</paper-button>
+			<paper-button danger on-tap="cancel">Cancel</paper-button>
+		</div>
+
+		<paper-toast id="message-toast" text="Something went wrong"></paper-toast>
+	</template>
+	
+	<script>
+		Polymer({
+			is: "bastion-message",
+			ready: function() {
+				this.primaryMessage = "Sign or encrypt";
+				this.encryptionKeys = [];
+				this.signingKey = null;
+				this.encrypting = false;
+				this.asp = new kbpgp.ASP({
+					progress_hook: function (info) {
+						console.log("progress...", info);
+					}
+				});
+			},
+			refresh: function(useKeyID) {
+				this.keys = window.keys;
+				this.recipientSearchKeys = this.keys.contacts.concat(this.keys.owned);
+				this.signingSearchKeys = this.keys.owned.concat();
+				
+				if (!useKeyID)
+					return;
+				
+				setTimeout((function() {
+					for (var i = 0; i < this.recipientSearchKeys.length; i++) {
+						var key = this.recipientSearchKeys[i];
+						if (key._id === useKeyID) {
+							break;
+						}
+					}
+					
+					var icons;
+					if (key.owned) {
+						// Add as signer (but not as recipient)
+						this.signingKey = key;
+						icons = document.querySelector("bastion-message").querySelectorAll("paper-icon-button[icon='add'][exclusive]");
+						for (var i = 0; i < icons.length; i++) {
+							if (icons[i].itemid === useKeyID) {
+								icons[i].icon = "check";
+							}
+						}
+					}
+					else {
+						// Add as recipient
+						this.encryptionKeys.push(key);
+						icons = document.querySelector("bastion-message").querySelectorAll("paper-icon-button[icon='add']:not([exclusive])");
+						for (var i = 0; i < icons.length; i++) {
+							if (icons[i].itemid === useKeyID) {
+								icons[i].icon = "check";
+							}
+						}
+					}
+					this.computeAction();
+				}).bind(this), 100);
+			},
+			goBack: function() {
+				window.bastionWrapper.goBack();
+			},
+			showMessage: function (message) {
+				this.toggleClass("recalculate", true, this.$["message-toast"]);
+				setTimeout((function() {
+					this.toggleClass("recalculate", false, this.$["message-toast"]);
+					this.$["message-toast"].text = message;
+					this.$["message-toast"].show();
+				}).bind(this), 10);
+			},
+			cancel: function() {
+				this.$.recipientInput.value = "";
+				this.$.signerInput.value = "";
+				this.$.message.value = "";
+				this.encryptionKeys = [];
+				this.signingKey = null;
+				var icons = this.querySelectorAll("paper-icon-button");
+				for (var i = 0; i < icons.length; i++) {
+					if (icons[i].itemid)
+						icons[i].icon = "add";
+				}
+				if (this.encrypting) {
+					this.asp.canceler().cancel();
+					this.encrypting = false;
+				}
+				this.computeAction();
+				this.goBack();
+			},
+			computeAction() {
+				if (this.encryptionKeys.length === 0 && !this.signingKey) {
+					this.primaryMessage = "Sign or encrypt";
+					this.toggleAttribute("disabled", true, this.$$("paper-button[primary]"));
+				}
+				else if (this.encryptionKeys.length === 0) {
+					this.primaryMessage = "Sign message";
+					this.toggleAttribute("disabled", !this.$.message.value || this.encrypting, this.$$("paper-button[primary]"));
+				}
+				else if (!this.signingKey) {
+					this.primaryMessage = "Encrypt message";
+					this.toggleAttribute("disabled", !this.$.message.value || this.encrypting, this.$$("paper-button[primary]"));
+				}
+				else {
+					this.primaryMessage = "Sign and encrypt message";
+					this.toggleAttribute("disabled", !this.$.message.value || this.encrypting, this.$$("paper-button[primary]"));
+				}
+			},
+			searchRecipient: function() {
+				var toSearch = this.$.recipientInput.inputElement.value.toLowerCase();
+				this.recipientSearchKeys = [];
+				if (toSearch === "") {
+					this.recipientSearchKeys = this.keys.contacts.concat(this.keys.owned);
+					return;
+				}
+				var results = [];
+				this.keys.contacts.forEach(function (contact) {
+					if (contact.info[0].username.toLowerCase().indexOf(toSearch) !== -1 || contact.info[0].email.toLowerCase().indexOf(toSearch) !== -1)
+						results.push(contact);
+				});
+				this.keys.owned.forEach(function (contact) {
+					if (contact.info[0].username.toLowerCase().indexOf(toSearch) !== -1 || contact.info[0].email.toLowerCase().indexOf(toSearch) !== -1)
+						results.push(contact);
+				});
+				this.recipientSearchKeys = results;
+			},
+			searchSigner: function() {
+				var toSearch = this.$.signerInput.inputElement.value.toLowerCase();
+				this.signingSearchKeys = [];
+				if (toSearch === "") {
+					this.signingSearchKeys = this.keys.owned.concat();
+					return;
+				}
+				var results = [];
+				this.keys.owned.forEach(function (contact) {
+					if (contact.info[0].username.toLowerCase().indexOf(toSearch) !== -1 || contact.info[0].email.toLowerCase().indexOf(toSearch) !== -1)
+						results.push(contact);
+				});
+				this.signingSearchKeys = results;
+			},
+			addRecipient: function (event) {
+				var id = event.currentTarget.itemid;
+				if (event.currentTarget.icon === "add") {
+					// Add recipient
+					for (var i = 0; i < this.recipientSearchKeys.length; i++) {
+						var key = this.recipientSearchKeys[i];
+						if (key._id === id) {
+							this.encryptionKeys.push(key);
+							break;
+						}
+					}
+					event.currentTarget.icon = "check";
+				}
+				else {
+					// Remove recipient
+					for (var i = 0; i < this.encryptionKeys.length; i++) {
+						var key = this.encryptionKeys[i];
+						if (key._id === id) {
+							this.encryptionKeys.splice(i, 1);
+						}
+					}
+					event.currentTarget.icon = "add";
+				}
+				this.computeAction();
+			},
+			addSigner: function (event) {
+				var id = event.currentTarget.itemid;
+				this.signingKey = null;
+				if (event.currentTarget.icon === "add") {
+					// Add signing key
+					var buttons = this.querySelectorAll("paper-icon-button[exclusive]");
+					for (var i = 0; i < buttons.length; i++) {
+						buttons[i].icon = "add";
+					}
+					for (var i = 0; i < this.signingSearchKeys.length; i++) {
+						var key = this.signingSearchKeys[i];
+						if (key._id === id) {
+							this.signingKey = key;
+							event.currentTarget.icon = "check";
+						}
+					}
+				}
+				else {
+					// Remove signing key
+					event.currentTarget.icon = "add";
+				}
+				this.computeAction();				
+			},
+			encrypt: function() {
+				// Create KeyManagers for each key involved in this operation
+				// First, import the signing key which may require a password
+				function getSigningKeyManager (key, callback) {
+					kbpgp.KeyManager.import_from_armored_pgp({
+						armored: key.keys.private
+					}, function(err, importedKey) {
+						if (err) {
+							console.error(err);
+							swal("Oops!", "Unable to import signing key.", "error");
+							callback(true);
+							return;
+						}
+						
+						if (importedKey.is_pgp_locked()) {
+							// Prompt for password
+							swal({
+								title: "Unlock your key",
+								text: "Please enter your passphrase to use the signing key that you selected.",
+								type: "input",
+								showCancelButton: true,
+								closeOnConfirm: false,
+								inputPlaceholder: "Passphrase",
+								inputType: "password"
+							}, function(inputPassword) {
+								if (inputPassword === false)
+									return false;
+								if (inputPassword === "") {
+									swal.showInputError("Please enter your passphrase.");
+									return false;
+								}
+								setEncrypting(true);
+								importedKey.unlock_pgp({
+									passphrase: inputPassword
+								}, function(err) {
+									swal.close();
+									if (err) {
+										console.error(err);
+										setTimeout(function() {
+											swal("Oops!", "An error occurred while unlocking your key. Your passphrase might be incorrect.", "error");
+										}, 100);
+										callback(true);
+										return;
+									}
+									callback(null, importedKey);
+								});
+							});
+						}
+						else {
+							setEncrypting(true);
+							callback(null, importedKey);
+						}
+					});
+				}
+				function getEncryptionKeyManager (key, callback) {
+					kbpgp.KeyManager.import_from_armored_pgp({
+						armored: key.keys.public
+					}, callback);
+				}
+				var setEncrypting = (function (value) {
+					this.encrypting = value;
+					this.computeAction();
+				}).bind(this);
+				
+				var params = {
+					msg: this.$.message.value,
+					asp: this.asp
+				};
+				var signAction = !!this.signingKey;
+				var encryptAction = this.encryptionKeys.length > 0;
+				
+				if (signAction && encryptAction) {
+					// Sign and encrypt
+					var localSigningKey = this.signingKey;
+					var localEncryptionKeys = this.encryptionKeys;
+					async.parallel([
+						function (callback) {
+							getSigningKeyManager(localSigningKey, callback);
+						},
+						function (callback) {
+							async.map(localEncryptionKeys, getEncryptionKeyManager, callback);
+						}
+					], function (err, results) {
+						if (err) {
+							// err === true if already handled
+							setEncrypting(false);
+							if (err !== true) {
+								console.error(err);
+								swal("Oops!", "An error occurred while preparing for encryption.", "error");
+							}
+							return;
+						}
+						var signingKeyManager = results[0];
+						var encryptionKeyManagers = results[1];
+						params.sign_with = signingKeyManager;
+						params.encrypt_for = encryptionKeyManagers;
+						finishEncryption();
+					});
+				}
+				else if (signAction) {
+					// Sign only
+					getSigningKeyManager(this.signingKey, function (err, signingKeyManager) {
+						if (err) {
+							setEncrypting(false);
+							return;
+						}
+						params.sign_with = signingKeyManager;
+						finishEncryption();
+					});
+				}
+				else if (encryptAction) {
+					// Encrypt only
+					setEncrypting(true); // Normally called as part of the signing key unlock
+					async.map(this.encryptionKeys, getEncryptionKeyManager, function (err, encryptionKeyManagers) {
+						if (err) {
+							setEncrypting(false);
+							console.error(err);
+							swal("Oops!", "An error occurred while preparing for encryption.", "error");
+							return;
+						}
+						params.encrypt_for = encryptionKeyManagers;
+						finishEncryption();
+					});
+				}
+				
+				var outputAction = this.$["output-action"];
+				var showMessage = this.showMessage.bind(this);
+				function finishEncryption() {
+					kbpgp.box(params, function(err, resultString, resultBuffer) {
+						// Reenable button
+						setEncrypting(false);
+						if (outputAction.selected === "copy") {
+							// Copy output string to clipboard
+							clipboard.writeText(resultString);
+							showMessage("Text output copied to clipboard.");
+						}
+						if (outputAction.selected === "ascii") {
+							// Save output string to file (.asc)
+							ipc.send("save", {
+								"title": "Save text output",
+								"filters": [
+									{name: "ASCII armor", extensions: ["asc", "txt"]},
+									{name: "All files", extensions: ["*"]}
+								]
+							});
+							ipc.once("save-response", function (file) {
+								fs.writeFileSync(file, resultString, {"encoding": "utf8"});
+								showMessage("Text output saved to file.");
+							});
+						}
+						if (outputAction.selected === "raw") {
+							// Save output buffer to file (.gpg / .pgp / .sig)
+							var filters;
+							if (params.encrypt_for) {
+								filters = [
+									{name: "Binary output", extensions: ["gpg", "pgp"]},
+									{name: "All files", extensions: ["*"]}
+								];
+							}
+							else {
+								filters = [
+									{name: "Binary signature", extensions: ["sig", "gpg", "pgp"]},
+									{name: "All files", extensions: ["*"]}
+								]
+							}
+							ipc.send("save", {
+								"title": "Save binary output",
+								"filters": filters 
+							});
+							ipc.once("save-response", function (file) {
+								fs.writeFileSync(file, resultBuffer);
+								showMessage("Binary output saved to file.");
+							});
+						}
+					});
+				}
+			}
+		});
+	</script>
+</dom-module>

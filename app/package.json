@@ -1,0 +1,34 @@
+{
+  "name": "bastion",
+  "version": "0.0.1",
+  "description": "Cross-platform OpenPGP client with support for Keybase.io proofs",
+  "main": "main.js",
+  "scripts": {
+    "build": "echo \"Building not configured yet\" && exit 1",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/petschekr/Bastion.git"
+  },
+  "keywords": [
+    "bastion",
+    "pgp",
+    "openpgp",
+    "open-pgp",
+    "gpg",
+    "client",
+    "keybase"
+  ],
+  "author": "Ryan Petschek <petschekr@gmail.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/petschekr/Bastion/issues"
+  },
+  "homepage": "https://github.com/petschekr/Bastion",
+  "dependencies": {
+    "async": "^1.4.0",
+    "kbpgp": "^2.0.46",
+    "nedb": "^1.2.0"
+  }
+}

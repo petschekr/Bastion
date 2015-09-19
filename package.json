@@ -1,43 +1,27 @@
 {
-  "name": "bastion",
-  "version": "0.0.1",
-  "description": "Cross-platform OpenPGP client with support for Keybase.io proofs",
-  "main": "index.html",
-  "window": {
-    "title": "Bastion",
-    "toolbar": true,
-    "width": 1000,
-    "height": 660,
-    "min_width": 800,
-    "min_height": 400,
-    "position": "center"
+  "devDependencies": {
+    "asar": "^0.7.2",
+    "electron-prebuilt": "^0.32.2",
+    "fs-jetpack": "^0.7.0",
+    "gulp": "^3.9.0",
+    "gulp-babel": "^5.2.1",
+    "gulp-less": "^3.0.3",
+    "gulp-sourcemaps": "^1.5.2",
+    "gulp-util": "^3.0.6",
+    "q": "^1.4.1",
+    "tree-kill": "^0.1.1",
+    "yargs": "^3.15.0"
+  },
+  "optionalDependencies": {
+    "appdmg": "^0.3.2",
+    "rcedit": "^0.3.0"
   },
   "scripts": {
-    "build": "echo \"Building not configured yet\" && exit 1",
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/petschekr/Bastion.git"
-  },
-  "keywords": [
-    "bastion",
-    "pgp",
-    "openpgp",
-    "open-pgp",
-    "gpg",
-    "client",
-    "keybase"
-  ],
-  "author": "Ryan Petschek <petschekr@gmail.com>",
-  "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/petschekr/Bastion/issues"
-  },
-  "homepage": "https://github.com/petschekr/Bastion",
-  "dependencies": {
-    "async": "^1.4.0",
-    "kbpgp": "^2.0.43",
-    "nedb": "^1.1.2"
+    "postinstall": "node ./tasks/app_npm_install",
+    "app-install": "node ./tasks/app_npm_install",
+    "build": "./node_modules/.bin/gulp build",
+    "release": "./node_modules/.bin/gulp release --env=production",
+    "start": "node ./tasks/start",
+    "test": "node ./tasks/start --env=test"
   }
 }
