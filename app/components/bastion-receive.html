@@ -1,0 +1,155 @@
+<link rel="import" href="../bower_components/polymer/polymer.html" />
+
+<dom-module id="bastion-receive">
+	<style>
+		paper-toolbar {
+			background-color: #0074D9 !important;
+			/* Compensates for default 8px margin around <body> */
+			margin-top: -8px;
+			margin-left: -8px;
+			margin-right: -8px;
+		}
+		.list {
+			padding: 12px 18px;
+			background-color: white;
+			display: block;
+			margin: 24px auto;
+			margin-left: 100px;
+			margin-right: 100px;
+			@apply(--shadow-elevation-2dp);
+		}
+		#actions {
+			text-align: center;
+			margin-bottom: 24px;
+		}
+		#actions paper-button {
+			text-transform: none;
+			font-weight: normal !important;
+			margin-top: 5px;
+		}
+		#actions paper-button ::content paper-material {
+			font-weight: normal !important;
+		}
+		#actions paper-button[primary] {
+			color: #0074D9;
+		}
+		#actions paper-button[disabled] {
+			color: #a8a8a8;
+		}
+		#actions paper-button[danger] {
+			color: var(--paper-red-500);
+			--paper-button-flat-focus-color: var(--paper-red-50);
+		}
+		h4 {
+			margin-bottom: 0;
+			margin-top: 10px;
+		}
+		paper-item {
+			padding: 0;
+		}
+		paper-item > span {
+			color: #757575;
+			font-family: 'Roboto', 'Noto', sans-serif;
+			-webkit-font-smoothing: antialiased;
+			font-size: 14px;
+			font-weight: 400;
+			line-height: 24px;
+			position: relative;
+			top: 1px;
+		}
+		paper-item small {
+			position: relative;
+			top: -1px;
+		}
+		.search-results {
+			overflow: auto;
+			max-height: 216px; /* 72px * 3 */
+		}
+	</style>
+	
+	<template>
+		<paper-toolbar>
+			<paper-icon-button icon="arrow-back" style="margin-right: 10px;" on-tap="cancel"></paper-icon-button>
+			<span class="title">[[primaryMessage]]</span>
+		</paper-toolbar>
+		
+		<div class="content">
+			
+			<div class="list">
+				<paper-textarea id="message" label="Your message" on-input="computeAction"></paper-textarea>
+			</div>
+			
+			<div id="actions">
+				<paper-radio-group selected="copy" id="output-action">
+					<paper-radio-button name="copy">Copy text output to clipboard</paper-radio-button>
+					<paper-radio-button name="ascii">Save text output to file</paper-radio-button>
+					<paper-radio-button name="raw">Save binary output to file</paper-radio-button>
+				</paper-radio-group>
+				<br />
+				<paper-button primary on-tap="encrypt" disabled>[[primaryMessage]]</paper-button>
+				<paper-button danger on-tap="cancel">Cancel</paper-button>
+			</div>
+		</div>
+
+		<paper-toast id="message-toast" text="Something went wrong"></paper-toast>
+	</template>
+	
+	<script>
+		Polymer({
+			is: "bastion-receive",
+			ready: function() {
+				this.primaryMessage = "Decrypt or verify";
+				this.encryptionKeys = [];
+				this.signingKey = null;
+				this.decrypting = false;
+				this.asp = new kbpgp.ASP({
+					progress_hook: function (info) {
+						console.log("progress...", info);
+					}
+				});
+			},
+			refresh: function() {
+				this.keys = window.keys;
+			},
+			showMessage: function (message) {
+				this.toggleClass("recalculate", true, this.$["message-toast"]);
+				setTimeout((function() {
+					this.toggleClass("recalculate", false, this.$["message-toast"]);
+					this.$["message-toast"].text = message;
+					this.$["message-toast"].show();
+				}).bind(this), 10);
+			},
+			cancel: function() {
+				if (this.decrypting) {
+					this.asp.canceler().cancel();
+					this.decrypting = false;
+				}
+				this.computeAction();
+				// Scroll to top of content div after the animation
+				var divToScroll = this.$$("div.content");
+				setTimeout(function () {
+					divToScroll.scrollTop = 0;
+				}, 500);
+				window.bastionWrapper.goBack();
+			},
+			computeAction() {
+				if (this.encryptionKeys.length === 0 && !this.signingKey) {
+					this.primaryMessage = "Sign or encrypt";
+					this.toggleAttribute("disabled", true, this.$$("paper-button[primary]"));
+				}
+				else if (this.encryptionKeys.length === 0) {
+					this.primaryMessage = "Sign message";
+					this.toggleAttribute("disabled", !this.$.message.value || this.decrypting, this.$$("paper-button[primary]"));
+				}
+				else if (!this.signingKey) {
+					this.primaryMessage = "Encrypt message";
+					this.toggleAttribute("disabled", !this.$.message.value || this.decrypting, this.$$("paper-button[primary]"));
+				}
+				else {
+					this.primaryMessage = "Sign and encrypt message";
+					this.toggleAttribute("disabled", !this.$.message.value || this.decrypting, this.$$("paper-button[primary]"));
+				}
+			}
+		});
+	</script>
+</dom-module>
