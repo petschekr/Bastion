@@ -40,15 +40,31 @@ if (argv._.length > 0) {
 
 
 var installCommand = null;
+var bowerCommand = null;
 
 if (process.platform === 'win32') {
-  installCommand = 'npm.cmd'
+  installCommand = 'npm.cmd';
+  bowerCommand = 'bower.cmd';
 } else {
-  installCommand = 'npm'
+  installCommand = 'npm';
+  bowerCommand = 'bower';
 }
 
-var install = childProcess.spawn(installCommand, params, {
+childProcess.exec(`${installCommand} ${params.join(" ")}`, {
     cwd: __dirname + '/../app',
     env: process.env,
-    stdio: 'inherit'
+}, function () {
+	// Install Bower
+	childProcess.exec(`${installCommand} install -g bower`, {
+		cwd: __dirname + '/../app',
+		env: process.env,
+	}, function () {
+		// Install Polymer and dependencies via Bower
+		childProcess.exec(`${bowerCommand} install`, {
+			cwd: __dirname + '/../app',
+			env: process.env,
+		}, function() {
+			// Done
+		});
+	});
 });
