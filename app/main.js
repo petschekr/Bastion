@@ -70,8 +70,12 @@ app.on("ready", function() {
 	
 	mainWindow.loadUrl("file://" + __dirname + "/index.html");
 	
-	var env = JSON.parse(fs.readFileSync(__dirname + "/env_config.json", "utf8"));
-	if (env.name === "development") {
+	var env = {};
+	try {
+		env = JSON.parse(fs.readFileSync(__dirname + "/env_config.json", "utf8"));
+	}
+	catch (e) {}
+	
 		devMenu.setDevMenu();
 		mainWindow.openDevTools();	
 	}
