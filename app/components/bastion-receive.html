@@ -44,49 +44,43 @@
 			margin-bottom: 0;
 			margin-top: 10px;
 		}
-		paper-item {
-			padding: 0;
+		.list paper-radio-group, .list paper-checkbox {
+			display: flex;
+			justify-content: center;
+			align-items: center;
 		}
-		paper-item > span {
-			color: #757575;
-			font-family: 'Roboto', 'Noto', sans-serif;
-			-webkit-font-smoothing: antialiased;
-			font-size: 14px;
-			font-weight: 400;
-			line-height: 24px;
-			position: relative;
-			top: 1px;
+		#data {
+			display: inline-block;
+			width: calc(100% - 45px);
 		}
-		paper-item small {
-			position: relative;
-			top: -1px;
-		}
-		.search-results {
-			overflow: auto;
-			max-height: 216px; /* 72px * 3 */
+		#detached {
+			margin: 15px 0;
 		}
 	</style>
 	
 	<template>
 		<paper-toolbar>
 			<paper-icon-button icon="arrow-back" style="margin-right: 10px;" on-tap="cancel"></paper-icon-button>
-			<span class="title">[[primaryMessage]]</span>
+			<span class="title">Decrypt or verify</span>
 		</paper-toolbar>
 		
 		<div class="content">
 			
 			<div class="list">
-				<paper-textarea id="message" label="Your message" on-input="computeAction"></paper-textarea>
+				<h4>Input</h4>
+				<paper-textarea id="data" label="Encrypted message or signature" on-input="computeAction"></paper-textarea>
+				<paper-icon-button icon="file-upload" on-tap="uploadData"></paper-icon-button>
+				<paper-checkbox id="detached">Input is a detached signature</paper-checkbox>
 			</div>
 			
 			<div id="actions">
-				<paper-radio-group selected="copy" id="output-action">
-					<paper-radio-button name="copy">Copy text output to clipboard</paper-radio-button>
-					<paper-radio-button name="ascii">Save text output to file</paper-radio-button>
-					<paper-radio-button name="raw">Save binary output to file</paper-radio-button>
+				<paper-radio-group selected="display" id="output-action">
+					<paper-radio-button name="display">Display output</paper-radio-button>
+					<paper-radio-button name="copy">Copy output to clipboard</paper-radio-button>
+					<paper-radio-button name="save">Save output to file</paper-radio-button>
 				</paper-radio-group>
 				<br />
-				<paper-button primary on-tap="encrypt" disabled>[[primaryMessage]]</paper-button>
+				<paper-button primary on-tap="decrypt" disabled>Decrypt or verify</paper-button>
 				<paper-button danger on-tap="cancel">Cancel</paper-button>
 			</div>
 		</div>
@@ -98,9 +92,6 @@
 		Polymer({
 			is: "bastion-receive",
 			ready: function() {
-				this.primaryMessage = "Decrypt or verify";
-				this.encryptionKeys = [];
-				this.signingKey = null;
 				this.decrypting = false;
 				this.asp = new kbpgp.ASP({
 					progress_hook: function (info) {
@@ -132,23 +123,11 @@
 				}, 500);
 				window.bastionWrapper.goBack();
 			},
-			computeAction() {
-				if (this.encryptionKeys.length === 0 && !this.signingKey) {
-					this.primaryMessage = "Sign or encrypt";
-					this.toggleAttribute("disabled", true, this.$$("paper-button[primary]"));
-				}
-				else if (this.encryptionKeys.length === 0) {
-					this.primaryMessage = "Sign message";
-					this.toggleAttribute("disabled", !this.$.message.value || this.decrypting, this.$$("paper-button[primary]"));
-				}
-				else if (!this.signingKey) {
-					this.primaryMessage = "Encrypt message";
-					this.toggleAttribute("disabled", !this.$.message.value || this.decrypting, this.$$("paper-button[primary]"));
-				}
-				else {
-					this.primaryMessage = "Sign and encrypt message";
-					this.toggleAttribute("disabled", !this.$.message.value || this.decrypting, this.$$("paper-button[primary]"));
-				}
+			uploadData: function() {
+				
+			},
+			computeAction: function() {
+				this.toggleAttribute("disabled", !this.$.data.value || this.decrypting, this.$$("paper-button[primary]"));
 			}
 		});
 	</script>
