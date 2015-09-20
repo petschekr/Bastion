@@ -225,7 +225,7 @@
 				}, 500);
 				window.bastionWrapper.goBack();
 			},
-			computeAction() {
+			computeAction: function() {
 				if (this.encryptionKeys.length === 0 && !this.signingKey) {
 					this.primaryMessage = "Sign or encrypt";
 					this.toggleAttribute("disabled", true, this.$$("paper-button[primary]"));
