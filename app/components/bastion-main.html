@@ -242,10 +242,15 @@
 						function privateExport() {
 							// Fix for bug in kbpgp where the public key is not regenerated
 							importedKey.armored_pgp_public = undefined;
+							// Get and save key ID's for decrypt/verify use
+							var keyIDs = importedKey.export_pgp_keys_to_keyring().map(function (subkey) {
+								return subkey.key_material.get_key_id().toString("hex");
+							});
 							importedKey.export_pgp_public({}, function(err, publicKey) {
 								db.insert({
 									"owned": true,
 									"info": information,
+									"ids": keyIDs,
 									"keys": {
 										"private": key,
 										"public": publicKey
@@ -311,9 +316,14 @@
 					}
 					else {
 						// Contact's key
+						// Get and save key ID's for decrypt/verify use
+						var keyIDs = importedKey.export_pgp_keys_to_keyring().map(function (subkey) {
+							return subkey.key_material.get_key_id().toString("hex");
+						});
 						db.insert({
 							"owned": false,
 							"info": information,
+							"ids": keyIDs,
 							"keys": {
 								"private": null,
 								"public": key
